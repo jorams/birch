@@ -180,9 +180,21 @@ For example, kick events are implemented like this:
 - `(quit connection &optional message)`
 - `(pong connection server-1 &optional server-2)` You shouldn't need this, as Birch automatically responds to PING.
 
+## CTCP
+
+Birch provides two utility functions for working with [CTCP](https://en.wikipedia.org/wiki/Client-to-client_protocol) messages.
+
+- `MAKE-CTCP-MESSAGE`, which takes a string as an argument and adds an ASCII 0x01 character to the start and end of it.
+
+    The result of `MAKE-CTCP-MESSAGE` can be sent to a connection using PRIVMSG or NOTICE to send a CTCP query to someone.
+
+- `CTCP-MESSAGE-P`, which takes a string as an argument and checks if it starts and ends with an ASCII 0x01 character.
+
+    To handle CTCP you can pass messages received through PRIVMSG or NOTICE through `CTCP-MESSAGE-P` and parse them as such if they are, in fact, CTCP messages.
+
 ## Notes
 
-- The test coverage is, at the moment, very low. The only thing being tested is the message parser.
+- The test coverage is, at the moment, very low. The only things being tested are the message parser and the CTCP utilities.
 - Birch does not handle errors in your event handlers, which can result in the connection staying open while the bot/client/whatever has crashed. This can be prevented, for example, by defining an `:AROUND` method on `HANDLE-EVENT`, like so:
 
   ```lisp
