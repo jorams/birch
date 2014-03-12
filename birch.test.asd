@@ -7,5 +7,6 @@
   :components ((:module "test"
                 :components
                 ((:file "package")
+                 (:file "ctcp")
                  (:file "parse")))))
 

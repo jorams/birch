@@ -7,6 +7,7 @@
   :components ((:file "package")
                (:file "replies")
                (:file "parse")
+               (:file "ctcp")
                (:file "connection")
                (:file "commands")
                (:file "events")

@@ -48,5 +48,9 @@
            #:kick
            #:part
            #:quit
-           #:pong))
+           #:pong
+           
+           ;; CTCP
+           #:make-ctcp-message
+           #:ctcp-message-p))
 
