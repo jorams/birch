@@ -103,22 +103,22 @@
    Any remaining arguments will be joined together (separated by spaces) and
    passed as the initial value of :MESSAGE."
   `(defmethod handle-message
-     ((connection connection) prefix (command (eql ,command)) params)
+       ((connection connection) prefix (command (eql ,command)) params)
      (destructuring-bind (nick user host)
          prefix
        (handle-event
-         connection
-         (make-instance ,class
-                        :nick nick
-                        :user user
-                        :host host
-                        ,@(loop for i from 0
-                                for arg in positional-initargs
-                                append `(,arg (elt params ,i)))
-                        :message (format NIL
-                                         "~{~A~^ ~}"
-                                         (nthcdr ,(length positional-initargs)
-                                                 params)))))))
+	connection
+	(make-instance ,class
+		       :nick nick
+		       :user user
+		       :host host
+		       ,@(loop for i from 0
+			    for arg in positional-initargs
+			    append `(,arg (elt params ,i)))
+		       :message (format NIL
+					"~{~A~^ ~}"
+					(nthcdr ,(length positional-initargs)
+						params)))))))
 
 ;;; Event-dispatching message handlers and the events they dispatch ;;;;;;;;;;;
 
@@ -176,4 +176,4 @@
   "Changes the nickname associated with a connection when a NICK message for
    the current nickname is received."
   (if (string= (nick-of event) (new-nick-of event))
-    (setf (nick-of connection) (new-nick-of event))))
+      (setf (nick-of connection) (new-nick-of event))))

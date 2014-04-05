@@ -4,11 +4,8 @@
 
 (defparameter *reply-codes*
   (let ((reply-codes (make-hash-table)))
-    (prog1 reply-codes  ; the reply-codes hash-table is what we're actually
-                        ; interested in.
-      (mapc #'(lambda (pair) ; MAPC is chosen here because the code for
-                             ; handling the gigantic list is now above it,
-                             ; instead of buried below.
+    (prog1 reply-codes
+      (mapc #'(lambda (pair)
                 (setf (gethash (car pair) reply-codes)
                       (cdr pair)))
             '((1 . :RPL_WELCOME)
@@ -523,7 +520,7 @@
    Other replies are simply turned into keywords an returned."
   (nth-value 0 ; Both GETHASH and INTERN return two unwanted values
              (handler-case (gethash (parse-integer
-                                      (princ-to-string reply-code))
+				     (princ-to-string reply-code))
                                     *reply-codes*)
                (error () (intern (string-upcase (princ-to-string reply-code))
                                  "KEYWORD")))))

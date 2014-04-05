@@ -5,11 +5,11 @@
   :license "LLGPL"
   :depends-on (#:split-sequence #:usocket)
   :components ((:file "package")
-               (:file "replies")
-               (:file "parse")
-               (:file "ctcp")
-               (:file "connection")
-               (:file "commands")
-               (:file "events")
-               (:file "birch")))
+	       (:file "replies")
+	       (:file "parse")
+	       (:file "ctcp")
+	       (:file "connection")
+	       (:file "commands")
+	       (:file "events")
+	       (:file "birch")))
 

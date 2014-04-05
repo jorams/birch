@@ -25,14 +25,9 @@
                                             :remove-empty-subseqs t
                                             :end final-argument)
                             (if final-argument
-                              (list (subseq message
-                                            (+ 2 final-argument))))))
-         (command-index 0)) ; COMMAND-INDEX holds the index of the command 
-                            ; part of the message. If prefix is present, it
-                            ; will be set to 1
-    (values (when
-              (char= #\: (elt (first arguments) 0))
-              (setf command-index 1)
-              (multiple-value-list (parse-prefix (first arguments))))
-            (reply->keyword (elt arguments command-index))
-            (subseq arguments (1+ command-index)))))
+				(list (subseq message
+					      (+ 2 final-argument)))))))
+    (values (when (char= #\: (elt (first arguments) 0))
+              (multiple-value-list (parse-prefix (pop arguments))))
+            (reply->keyword (first arguments))
+            (subseq arguments 1))))

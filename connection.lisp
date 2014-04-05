@@ -14,9 +14,9 @@
                   :documentation "The stream associated with the current socket
                                   connection to the server.")
    (activep :initarg :activep
-               :initform NIL
-               :accessor activep
-               :documentation "Whether or not the connection to the server is
+	    :initform NIL
+	    :accessor activep
+	    :documentation "Whether or not the connection to the server is
                                supposed to be open. In case of connection
                                issues READ-MESSAGE-LOOP uses this to determine
                                whether or not to reconnect")

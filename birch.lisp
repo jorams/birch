@@ -23,7 +23,7 @@
   (multiple-value-call #'handle-message
     connection
     (parse-message
-      (string-trim '(#\Return) (read-line (stream-of connection)))))
+     (string-trim '(#\Return) (read-line (stream-of connection)))))
   ;; we return T because READ-MESSAGE-LOOP loops WHILE READ-MESSAGE. There
   ;; is probably a more elegant solution for this.
   t)
@@ -34,12 +34,12 @@
   ;; we check if we wanted to quit, and if not we try to reconnect until that
   ;; succeeds.
   (loop until (handler-case
-                (loop while (read-message connection))
+		  (loop while (read-message connection))
                 (end-of-file
-                  ()
+		    ()
                   (if (activep connection)
-                    (loop until (handler-case
-                                  (progn (sleep 5)
-                                         (connect connection)
-                                         t)
-                                  (serious-condition NIL))))))))
+		      (loop until (handler-case
+				      (progn (sleep 5)
+					     (connect connection)
+					     t)
+				    (serious-condition NIL))))))))
