@@ -5,10 +5,14 @@
   "Connects to the IRC network denoted by CONNECTION. Opens a connection to the
    server and performs initial registration."
   (let ((socket (usocket:socket-connect (host-of connection)
-                                        (port-of connection))))
+                                        (port-of connection)
+					:element-type '(unsigned-byte 8))))
     ;; Initialization
     (setf (socket-of connection) socket
-          (stream-of connection) (usocket:socket-stream socket)
+          (stream-of connection)
+	  (flexi-streams:make-flexi-stream
+	   (usocket:socket-stream socket)
+	   :external-format '(:UTF-8 :eol-style :crlf))
           (activep connection) t)
     (unless (user-of connection)
       (setf (user-of connection) (nick-of connection)))
