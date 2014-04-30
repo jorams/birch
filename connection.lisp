@@ -38,4 +38,3 @@
    (real-name :initarg :real-name
               :initform "Birch IRC library"
               :accessor real-name-of)))
-
