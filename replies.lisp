@@ -520,7 +520,7 @@
    Other replies are simply turned into keywords an returned."
   (nth-value 0 ; Both GETHASH and INTERN return two unwanted values
              (handler-case (gethash (parse-integer
-				     (princ-to-string reply-code))
+                                     (princ-to-string reply-code))
                                     *reply-codes*)
                (error () (intern (string-upcase (princ-to-string reply-code))
                                  "KEYWORD")))))

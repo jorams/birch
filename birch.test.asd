@@ -5,8 +5,8 @@
   :license "LLGPL"
   :depends-on (#:birch #:rt)
   :components ((:module "test"
-			:components
-			((:file "package")
-			 (:file "ctcp")
-			 (:file "parse")))))
+                        :components
+                        ((:file "package")
+                         (:file "ctcp")
+                         (:file "parse")))))
 

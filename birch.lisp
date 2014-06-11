@@ -6,13 +6,13 @@
    server and performs initial registration."
   (let ((socket (usocket:socket-connect (host-of connection)
                                         (port-of connection)
-					:element-type '(unsigned-byte 8))))
+                                        :element-type '(unsigned-byte 8))))
     ;; Initialization
     (setf (socket-of connection) socket
           (stream-of connection)
-	  (flexi-streams:make-flexi-stream
-	   (usocket:socket-stream socket)
-	   :external-format '(:UTF-8 :eol-style :crlf))
+          (flexi-streams:make-flexi-stream
+           (usocket:socket-stream socket)
+           :external-format '(:UTF-8 :eol-style :crlf))
           (activep connection) t)
     (unless (user-of connection)
       (setf (user-of connection) (nick-of connection)))
@@ -38,12 +38,12 @@
   ;; we check if we wanted to quit, and if not we try to reconnect until that
   ;; succeeds.
   (loop until (handler-case
-		  (loop while (read-message connection))
+                  (loop while (read-message connection))
                 (end-of-file
-		    ()
+                    ()
                   (if (activep connection)
-		      (loop until (handler-case
-				      (progn (sleep 5)
-					     (connect connection)
-					     t)
-				    (serious-condition NIL))))))))
+                      (loop until (handler-case
+                                      (progn (sleep 5)
+                                             (connect connection)
+                                             t)
+                                    (serious-condition NIL))))))))

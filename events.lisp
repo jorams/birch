@@ -19,17 +19,17 @@
                        `(call-method ,method))
                    methods)))
     (let ((form (if (or before after (rest primary))
-                  `(multiple-value-prog1
-                     (progn ,@(call-methods before)
-                            (call-method ,(first primary)
-                                         ,(rest primary)))
-                     ,@(call-methods (reverse after)))
-                  `(call-method ,(first primary)))))
+                    `(multiple-value-prog1
+                         (progn ,@(call-methods before)
+                                (call-method ,(first primary)
+                                             ,(rest primary)))
+                       ,@(call-methods (reverse after)))
+                    `(call-method ,(first primary)))))
       (if around
-        `(call-method ,(first around)
-                      (,@(rest around)
-                        (make-method ,form)))
-        form))))
+          `(call-method ,(first around)
+                        (,@(rest around)
+                           (make-method ,form)))
+          form))))
 
 ;;; Somewhat low-level message handling
 
@@ -56,8 +56,8 @@
   (destructuring-bind (server-1 &optional server-2)
       params
     (if server-2
-      (pong connection server-1 server-2)
-      (pong connection server-1))))
+        (pong connection server-1 server-2)
+        (pong connection server-1))))
 
 ;;; The event system ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -107,18 +107,18 @@
      (destructuring-bind (nick user host)
          prefix
        (handle-event
-	connection
-	(make-instance ,class
-		       :nick nick
-		       :user user
-		       :host host
-		       ,@(loop for i from 0
-			    for arg in positional-initargs
-			    append `(,arg (elt params ,i)))
-		       :message (format NIL
-					"~{~A~^ ~}"
-					(nthcdr ,(length positional-initargs)
-						params)))))))
+        connection
+        (make-instance ,class
+                       :nick nick
+                       :user user
+                       :host host
+                       ,@(loop for i from 0
+                            for arg in positional-initargs
+                            append `(,arg (elt params ,i)))
+                       :message (format NIL
+                                        "~{~A~^ ~}"
+                                        (nthcdr ,(length positional-initargs)
+                                                params)))))))
 
 ;;; Event-dispatching message handlers and the events they dispatch ;;;;;;;;;;;
 

@@ -25,8 +25,8 @@
                                             :remove-empty-subseqs t
                                             :end final-argument)
                             (if final-argument
-				(list (subseq message
-					      (+ 2 final-argument)))))))
+                                (list (subseq message
+                                              (+ 2 final-argument)))))))
     (values (when (char= #\: (elt (first arguments) 0))
               (multiple-value-list (parse-prefix (pop arguments))))
             (reply->keyword (first arguments))

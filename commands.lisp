@@ -76,5 +76,5 @@
                    PING by the server")
   (:method ((connection connection) (server-1 string) &optional server-2)
     (if server-2
-	(raw connection "PONG ~A ~A" server-1 server-2)
-	(raw connection "PONG ~A" server-1))))
+        (raw connection "PONG ~A ~A" server-1 server-2)
+        (raw connection "PONG ~A" server-1))))
