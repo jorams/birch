@@ -1,3 +1,4 @@
+(in-package :asdf-user)
 (asdf:defsystem #:birch
   :serial t
   :description "A simple Common Lisp IRC client library"
@@ -18,5 +19,5 @@
                                              "connection"
                                              "commands"
                                              "events"
-                                             "init"))))
-
+                                             "init")))
+  :in-order-to ((test-op (test-op :birch.test))))
