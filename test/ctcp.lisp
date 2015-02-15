@@ -1,6 +1,8 @@
 ;;;; Note that some of the strings in this file contain literal ASCII 0x01
 ;;;; characters.
-(in-package #:birch.test)
+(defpackage :birch.test/ctcp
+  (:use :cl :rt :birch/ctcp))
+(in-package :birch.test/ctcp)
 
 (rt:deftest make-ctcp-message
     (birch:make-ctcp-message "Test message")

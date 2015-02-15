@@ -4,9 +4,6 @@
   :author "Joram Schrijver <i@joram.io>"
   :license "LLGPL"
   :depends-on (#:birch #:rt)
-  :components ((:module "test"
-                        :components
-                        ((:file "package")
-                         (:file "ctcp")
-                         (:file "parse")))))
-
+  :pathname "test"
+  :components ((:file "ctcp")
+               (:file "parse")))

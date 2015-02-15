@@ -1,4 +1,6 @@
-(in-package #:birch.test)
+(defpackage :birch.test/parse
+  (:use :cl :rt :birch/parse))
+(in-package :birch.test/parse)
 
 (rt:deftest parse-prefix-full
     (birch::parse-prefix ":WiZ!jto@tolsun.oulu.fi")
