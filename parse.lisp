@@ -1,5 +1,9 @@
 ;;;; Functions for parsing the messages read from the stream.
-(in-package #:birch)
+(defpackage :birch/parse
+  (:use :cl :birch/replies)
+  (:export #:parse-message
+           #:parse-prefix))
+(in-package :birch/parse)
 
 (defun parse-prefix (prefix)
   "Parses a prefix, assumed to still have the ':' at the front.

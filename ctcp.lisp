@@ -1,5 +1,9 @@
 ;;;; Some functions to aid in handling CTCP messages
-(in-package #:birch)
+(defpackage :birch/ctcp
+  (:use :cl)
+  (:export #:make-ctcp-message
+           #:ctcp-message-p))
+(in-package :birch/ctcp)
 
 (defun make-ctcp-message (string)
   "Returns a string with a 0x01 character added to the start and end of STRING,

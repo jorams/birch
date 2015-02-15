@@ -1,5 +1,17 @@
 ;;;; CONNECTION class needed by other files
-(in-package #:birch)
+(defpackage :birch/connection
+  (:use :cl)
+  (:export #:connection
+           #:socket-of
+           #:stream-of
+           #:activep
+           #:host-of
+           #:port-of
+           #:nick-of
+           #:user-of
+           #:pass-of
+           #:real-name-of))
+(in-package :birch/connection)
 
 (defclass connection ()
   ((socket :type usocket:stream-usocket

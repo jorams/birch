@@ -1,7 +1,32 @@
 ;;;; Functions to handle messages and turn some of them into events.
-(in-package #:birch)
+(defpackage :birch/events
+  (:use :cl)
+  (:import-from :birch/connection
+                #:connection
+                #:nick-of)
+  (:import-from :birch/commands
+                #:pong)
+  (:export #:event
+           #:handle-message
+           #:handle-event
+           #:define-event-dispatcher
+           #:channel-event
+           #:privmsg-event
+           #:notice-event
+           #:join-event
+           #:part-event
+           #:quit-event
+           #:kick-event
+           #:nick-event
+           #:topic-event
+           #:message-of
+           #:channel-of
+           #:target-of
+           #:new-nick-of
+           #:new-topic-of))
+(in-package :birch/events)
 
-;;; Special method combination 
+;;; Special method combination
 (define-method-combination event ()
   ((around (:around))
    (before (:before))

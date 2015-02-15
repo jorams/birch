@@ -1,5 +1,21 @@
 ;;;; Generic functions to send commonly used IRC messages.
-(in-package #:birch)
+(defpackage :birch/commands
+  (:use :cl)
+  (:import-from :birch/connection
+                #:connection
+                #:stream-of)
+  (:export #:raw
+           #:pass
+           #:nick
+           #:user
+           #:join
+           #:privmsg
+           #:invite
+           #:kick
+           #:part
+           #:quit
+           #:pong))
+(in-package :birch/commands)
 
 ;; RAW is used to send raw messages to the server. The idea to make it work
 ;; somewhat like FORMAT came from Colleen, by Shinmera (Nicolas Hafner).

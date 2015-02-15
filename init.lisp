@@ -1,5 +1,12 @@
 ;;;; Basic connection functionality.
-(in-package #:birch)
+(defpackage :birch/init
+  (:use :cl :birch/connection :birch/parse)
+  (:import-from :birch/commands
+                #:nick
+                #:user)
+  (:export #:connect
+           #:read-message-loop))
+(in-package :birch/init)
 
 (defun connect (connection)
   "Connects to the IRC network denoted by CONNECTION. Opens a connection to the

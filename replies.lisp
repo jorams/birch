@@ -1,6 +1,9 @@
 ;;;; Functions to convert IRC replies, both the numerical ones and the normal
 ;;;; ones, to appropriate keywords.
-(in-package #:birch)
+(defpackage :birch/replies
+  (:use :cl)
+  (:export #:reply->keyword))
+(in-package :birch/replies)
 
 (defparameter *reply-codes*
   (let ((reply-codes (make-hash-table)))
