@@ -1,40 +1,26 @@
-(defpackage :birch.test/parse
-  (:use :cl :rt :birch/parse))
+(fiasco:define-test-package :birch.test/parse
+  (:use :cl :birch/parse :birch/replies))
 (in-package :birch.test/parse)
 
-(rt:deftest parse-prefix-full
-    (birch::parse-prefix ":WiZ!jto@tolsun.oulu.fi")
-  "WiZ" "jto" "tolsun.oulu.fi")
+(deftest test-parse-prefix ()
+  (is (equal (multiple-value-list (parse-prefix ":WiZ!jto@tolsun.oulu.fi"))
+             '("WiZ" "jto" "tolsun.oulu.fi")))
+  (is (equal (multiple-value-list (parse-prefix ":WiZ@tolsun.oulu.fi"))
+             '("WiZ" nil "tolsun.oulu.fi")))
+  (is (equal (multiple-value-list (parse-prefix ":WiZ"))
+             '("WiZ" nil nil))))
 
-(rt:deftest parse-prefix-no-user
-    (birch::parse-prefix ":WiZ@tolsun.oulu.fi")
-  "WiZ" NIL "tolsun.oulu.fi")
+;; Also test replies, whose primary use is in parsing
+(deftest test-reply->keyword ()
+  (is (eq (reply->keyword 1) :RPL_WELCOME))
+  (is (eq (reply->keyword 974) :ERR_CANNOTCHANGECHANMODE))
+  (is (eq (reply->keyword "PRIVMSG") :PRIVMSG)))
 
-(rt:deftest parse-prefix-only-nick
-    (birch::parse-prefix ":WiZ")
-  "WiZ" NIL NIL)
-
-(rt:deftest reply->keyword-num1
-    (birch::reply->keyword 1)
-  :RPL_WELCOME)
-
-(rt:deftest reply->keyword-num974
-    (birch::reply->keyword 974)
-  :ERR_CANNOTCHANGECHANMODE)
-
-(rt:deftest reply->keyword-privmsg
-    (birch::reply->keyword "PRIVMSG")
-  :PRIVMSG)
-
-(rt:deftest parse-message-privmsg-1
-    (birch::parse-message "PRIVMSG Supertest")
-  NIL :PRIVMSG ("Supertest"))
-
-(rt:deftest parse-message-privmsg-2
-    (birch::parse-message "PRIVMSG")
-  NIL :PRIVMSG ())
-
-;; Note that this text also depends on PARSE-PREFIX functioning correctly
-(rt:deftest parse-message-privmsg-3
-    (birch::parse-message ":test PRIVMSG")
-  ("test" NIL NIL) :PRIVMSG ())
+(deftest test-parse-message ()
+  (is (equal (multiple-value-list (parse-message "PRIVMSG Supertest"))
+             '(nil :PRIVMSG ("Supertest"))))
+  (is (equal (multiple-value-list (parse-message "PRIVMSG"))
+             '(nil :PRIVMSG ())))
+  ;; Note that this also depends on PARSE-PREFIX functioning correctly
+  (is (equal (multiple-value-list (parse-message ":test PRIVMSG"))
+             '(("test" nil nil) :PRIVMSG ()))))
