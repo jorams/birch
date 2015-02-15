@@ -4,6 +4,7 @@
   :author "Joram Schrijver <i@joram.io>"
   :license "MIT"
   :depends-on (#:split-sequence #:usocket #:flexi-streams)
+  :pathname "src"
   :components ((:file "replies")
                (:file "parse")
                (:file "ctcp")
