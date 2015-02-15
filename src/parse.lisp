@@ -1,6 +1,6 @@
 ;;;; Functions for parsing the messages read from the stream.
 (defpackage :birch/parse
-  (:use :cl :birch/replies)
+  (:use :cl :birch/replies :split-sequence)
   (:export #:parse-message
            #:parse-prefix))
 (in-package :birch/parse)

@@ -3,7 +3,10 @@
   (:use :cl :birch/connection :birch/parse)
   (:import-from :birch/commands
                 #:nick
-                #:user)
+                #:user
+                #:pass)
+  (:import-from :birch/events
+                #:handle-message)
   (:export #:connect
            #:read-message-loop))
 (in-package :birch/init)

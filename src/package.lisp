@@ -1,6 +1,5 @@
 (uiop:define-package :birch
     (:use
-     :cl
      :birch/replies
      :birch/parse
      :birch/ctcp
