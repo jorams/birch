@@ -3,7 +3,7 @@
   :serial t
   :description "Tests for Birch"
   :author "Joram Schrijver <i@joram.io>"
-  :license "LLGPL"
+  :license "MIT"
   :depends-on (#:birch #:fiasco)
   :pathname "test"
   :components ((:file "ctcp")

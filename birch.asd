@@ -1,6 +1,5 @@
 (in-package :asdf-user)
 (asdf:defsystem #:birch
-  :serial t
   :description "A simple Common Lisp IRC client library"
   :author "Joram Schrijver <i@joram.io>"
   :license "MIT"
