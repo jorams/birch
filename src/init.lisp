@@ -14,8 +14,8 @@
 (defun connect (connection)
   "Connects to the IRC network denoted by CONNECTION. Opens a connection to the
    server and performs initial registration."
-  (let ((socket (usocket:socket-connect (host-of connection)
-                                        (port-of connection)
+  (let ((socket (usocket:socket-connect (server-host-of connection)
+                                        (server-port-of connection)
                                         :element-type '(unsigned-byte 8))))
     ;; Initialization
     (setf (socket-of connection) socket

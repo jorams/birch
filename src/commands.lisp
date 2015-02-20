@@ -1,13 +1,21 @@
-;;;; Generic functions to send commonly used IRC messages.
+;;;; Generic functions to send commonly used IRC messages. Some of those have an
+;;;; awful lot of methods to cover all argument type variations, which should
+;;;; probably be improved (Taped over with a little macro).
 (defpackage :birch/commands
   (:use :cl)
   (:import-from :birch/connection
                 #:connection
-                #:stream-of)
+                #:user
+                #:stream-of
+                #:activep
+
+                #:channel
+                #:name-of
+                #:user
+                #:nick-of)
   (:export #:raw
            #:pass
            #:nick
-           #:user
            #:join
            #:privmsg
            #:invite
@@ -51,32 +59,55 @@
 (defgeneric join (connection channel &optional key)
   (:documentation "Sends a JOIN message to CONNECTION, to join a channel.")
   (:method ((connection connection) (channel string) &optional key)
-    (raw connection "JOIN ~A~@[ ~A~]" channel key)))
+    (raw connection "JOIN ~A~@[ ~A~]" channel key))
+  (:method ((connection connection) (channel channel) &optional key)
+    (join connection (name-of channel) key)))
 
 (defgeneric privmsg (connection channel message)
   (:documentation
    "Sends a PRIVMSG message to CONNECTION. CHANNEL should either be a channel
      name or the name of a user connected to the network.")
   (:method ((connection connection) (channel string) (message string))
-    (raw connection "PRIVMSG ~A :~A" channel message)))
+    (raw connection "PRIVMSG ~A :~A" channel message))
+  (:method ((connection connection) (channel channel) (message string))
+    (privmsg connection (name-of channel) message))
+  (:method ((connection connection) (user user) (message string))
+    (privmsg connection (nick-of user) message)))
 
 (defgeneric invite (connection nick channel)
   (:documentation "Sends an INVITE message to CONNECTION, trying to invite NICK
                    to CHANNEL")
-  (:method ((connection connection) (nick string) (channel string))
-    (raw connection "INVITE ~A ~A" nick channel)))
+  (:method ((connection connection) (user string) (channel string))
+    (raw connection "INVITE ~A ~A" user channel))
+  (:method ((connection connection) (user user) (channel channel))
+    (invite connection (nick-of user) (name-of channel)))
+  (:method ((connection connection) (user user) (channel string))
+    (invite connection (nick-of user) channel))
+  (:method ((connection connection) (user string) (channel channel))
+    (invite connection user (name-of channel))))
 
 (defgeneric kick (connection channel nick &optional message)
   (:documentation "Sends a KICK message to CONNECTION, trying to kick NICK from
                    CHANNEL")
-  (:method ((connection connection) (channel string) (nick string)
+  (:method ((connection connection) (channel string) (user string)
             &optional message)
-    (raw connection "KICK ~A ~A~@[ :~A~]" channel nick message)))
+    (raw connection "KICK ~A ~A~@[ :~A~]" channel user message))
+  (:method ((connection connection) (channel channel) (user user)
+            &optional message)
+    (kick connection (name-of channel) (nick-of user) message))
+  (:method ((connection connection) (channel string) (user user)
+            &optional message)
+    (kick connection channel (nick-of user) message))
+  (:method ((connection connection) (channel channel) (user string)
+            &optional message)
+    (kick connection (name-of channel) user message)))
 
 (defgeneric part (connection channel &optional message)
   (:documentation "Sends a PART message to CONNECTION, to leave a channel.")
   (:method ((connection connection) (channel string) &optional message)
-    (raw connection "PART ~A~@[ :~A~]" channel message)))
+    (raw connection "PART ~A~@[ :~A~]" channel message))
+  (:method ((connection connection) (channel channel) &optional message)
+    (raw connection "PART ~A~@[ :~A~]" (name-of channel) message)))
 
 (defgeneric quit (connection &optional message)
   (:documentation "Sends a QUIT message to CONNECTION and sets

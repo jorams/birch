@@ -33,13 +33,13 @@ To connect to an IRC network you create an instance of your connection class. Yo
 
 ```lisp
 (defvar *connection* (make-instance 'my-connection
-                                    :host "irc.example.com"
+                                    :server-host "irc.example.com"
                                     :nick "mybot"))
 ```
 
-The only required initargs for the default connection class are `:HOST` and `:NICK`. The others of interest are:
+The only required initargs for the default connection class are `:SERVER-HOST` and `:NICK`. The others of interest are:
 
-- `:PORT`, the port to connect to (defaults to 6667)
+- `:SERVER-PORT`, the port to connect to (defaults to 6667)
 - `:USER`, the username to send upon initial connection (defaults to the supplied nickname)
 - `:PASS`, the password to send. If not supplied no password will be sent.
 - `:REAL-NAME`, the real name to register with (defaults to "Birch IRC library")
@@ -115,13 +115,18 @@ If you want to handle something as an event you can define a method on `HANDLE-M
 
    POSITIONAL-INITARGS should be a list of initargs to pass to MAKE-INSTANCE,
    where the position of the keyword determines the IRC command parameter that
-   will be used as a value.
+   will be used as a value. A NIL will cause an IRC parameter to be ignored.
 
    For example, when POSITIONAL-INITARGS is (:CHANNEL), the first parameter of
    the IRC message will be passed as the initial value of :CHANNEL.
    If POSITIONAL-INITARGS is (:CHANNEL :TARGET), the first parameter will be
    passed as the initial value of :CHANNEL, and the second parameter will be
    passed as the initial value of :TARGET.
+
+   Instead of a keyword, an element of POSITIONAL-INITARGS can also be a list of
+   the form (:KEYWORD FUNCTION), which means the value passed as the initarg
+   will be the result of calling FUNCTION with two arguments: the connection
+   object and the IRC parameter.
 
    Any remaining arguments will be joined together (separated by spaces) and
    passed as the initial value of :MESSAGE."
@@ -136,7 +141,8 @@ For example, kick events are implemented like this:
            :initform NIL
            :accessor target-of)))
 
-(define-event-dispatcher :KICK 'kick-event (:channel :target))
+(define-event-dispatcher :KICK 'kick-event ((:channel #'make-channel)
+                                            (:target #'make-user)))
 ```
 
 ## Events
@@ -181,6 +187,12 @@ For example, kick events are implemented like this:
 - `(quit connection &optional message)`
 - `(pong connection server-1 &optional server-2)` You shouldn't need this, as Birch automatically responds to PING.
 
+## Users and Channels
+
+Birch keeps track of users and channels for you. The default events call `MAKE-USER` and `MAKE-CHANNEL` on the appropriate parameters, turning them into `USER` and `CHANNEL` objects with appropriate slots. To get a list of all users in a channel, call `USERS-OF` on the channel object. Similarly, to get all channels a user is in (that we know of), call `CHANNELS-OF` on a user object.
+
+It is worth noting that `CONNECTION` is itself a subclass of `USER` and will appear in appear channel user lists.
+
 ## CTCP
 
 Birch provides two utility functions for working with [CTCP](https://en.wikipedia.org/wiki/Client-to-client_protocol) messages.
@@ -211,7 +223,7 @@ Birch provides two utility functions for working with [CTCP](https://en.wikipedi
 
 ## License
 
-    Copyright (c) 2014 Joram Schrijver
+    Copyright (c) 2015 Joram Schrijver
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

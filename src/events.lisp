@@ -3,9 +3,25 @@
   (:use :cl)
   (:import-from :birch/connection
                 #:connection
-                #:nick-of)
+                #:user
+                #:make-user
+                #:nick-of
+                #:rename-user
+                #:add-user
+                #:remove-user
+
+                #:channel
+                #:make-channel
+                #:topic-of
+                #:users-of
+                #:channels-of
+                #:channel-type-of)
   (:import-from :birch/commands
                 #:pong)
+  (:import-from :alexandria
+                #:removef)
+  (:import-from :split-sequence
+                #:split-sequence)
   (:export #:event
            #:handle-message
            #:handle-event
@@ -84,18 +100,32 @@
         (pong connection server-1 server-2)
         (pong connection server-1))))
 
+(defmethod handle-message ((connection connection)
+                           prefix
+                           (command (eql :RPL_NAMREPLY))
+                           params)
+  "Handles an RPL_NAMREPLY message and updates the channel."
+  (let ((channel (make-channel connection (third params))))
+    (setf (channel-type-of channel)
+          (case (char (second params) 0)
+            (#\@ :secret)
+            (#\* :private)
+            (#\= :public)))
+    (dolist (name (split-sequence #\space (fourth params)
+                                  :remove-empty-subseqs t))
+      (add-user (make-user connection
+                           (case (char name 0)
+                             ;; We currently ignore op or voice status
+                             ((#\@ #\+) (subseq name 1))
+                             (t name)))
+                channel))))
+
 ;;; The event system ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass event ()
-  ((nick :initarg :nick
-         :initform NIL
-         :accessor nick-of)
-   (user :initarg :user
+  ((user :initarg :user
          :initform NIL
          :accessor user-of)
-   (host :initarg :host
-         :initform NIL
-         :accessor host-of)
    (message :initarg :message
             :initform NIL
             :accessor message-of)))
@@ -117,7 +147,7 @@
 
    POSITIONAL-INITARGS should be a list of initargs to pass to MAKE-INSTANCE,
    where the position of the keyword determines the IRC command parameter that
-   will be used as a value.
+   will be used as a value. A NIL will cause an IRC parameter to be ignored.
 
    For example, when POSITIONAL-INITARGS is (:CHANNEL), the first parameter of
    the IRC message will be passed as the initial value of :CHANNEL.
@@ -125,21 +155,28 @@
    passed as the initial value of :CHANNEL, and the second parameter will be
    passed as the initial value of :TARGET.
 
+   Instead of a keyword, an element of POSITIONAL-INITARGS can also be a list of
+   the form (:KEYWORD FUNCTION), which means the value passed as the initarg
+   will be the result of calling FUNCTION with two arguments: the connection
+   object and the IRC parameter.
+
    Any remaining arguments will be joined together (separated by spaces) and
    passed as the initial value of :MESSAGE."
   `(defmethod handle-message
        ((connection connection) prefix (command (eql ,command)) params)
-     (destructuring-bind (nick user host)
-         prefix
+     (let ((user (make-user connection prefix)))
        (handle-event
         connection
         (make-instance ,class
-                       :nick nick
                        :user user
-                       :host host
                        ,@(loop for i from 0
-                            for arg in positional-initargs
-                            append `(,arg (elt params ,i)))
+                               for arg in positional-initargs
+                               if (consp arg)
+                                 append `(,(first arg)
+                                          (funcall ,(or (second arg) #'identity)
+                                                   connection (elt params ,i)))
+                               else if (keywordp arg)
+                                      append `(,arg (elt params ,i)))
                        :message (format NIL
                                         "~{~A~^ ~}"
                                         (nthcdr ,(length positional-initargs)
@@ -158,21 +195,21 @@
   (:documentation "Event dispatched when a PRIVMSG message is received from the
                    server. Note that when the CHANNEL slot is STRING= to the
                    current nickname this privmsg won't have been sent to a
-                   channel but directly to you.") )
-(define-event-dispatcher :PRIVMSG 'privmsg-event (:channel))
+                   channel but directly to you."))
+(define-event-dispatcher :PRIVMSG 'privmsg-event ((:channel #'make-channel)))
 
 (defclass notice-event (channel-event) ()
   (:documentation "Event dispatched when a NOTICE message is received from the
                    server. Note that when the CHANNEL slot is STRING= to the
                    current nickname this notice won't have been sent to a
                    channel but directly to you."))
-(define-event-dispatcher :NOTICE 'notice-event (:channel))
+(define-event-dispatcher :NOTICE 'notice-event ((:channel #'make-channel)))
 
 (defclass join-event (channel-event) ())
-(define-event-dispatcher :JOIN 'join-event (:channel))
+(define-event-dispatcher :JOIN 'join-event ((:channel #'make-channel)))
 
 (defclass part-event (channel-event) ())
-(define-event-dispatcher :PART 'part-event (:channel))
+(define-event-dispatcher :PART 'part-event ((:channel #'make-channel)))
 
 (defclass quit-event (event) ())
 (define-event-dispatcher :QUIT 'quit-event)
@@ -181,7 +218,8 @@
   ((target :initarg :target
            :initform NIL
            :accessor target-of)))
-(define-event-dispatcher :KICK 'kick-event (:channel :target))
+(define-event-dispatcher :KICK 'kick-event ((:channel #'make-channel)
+                                            (:target #'make-user)))
 
 (defclass nick-event (event)
   ((new-nick :initarg :new-nick
@@ -193,12 +231,36 @@
   ((new-topic :initarg :new-topic
               :initform NIL
               :accessor new-topic-of)))
-(define-event-dispatcher :TOPIC 'nick-event (:new-topic))
+(define-event-dispatcher :TOPIC 'topic-event ((:channel #'make-channel)
+                                              :new-topic))
+(define-event-dispatcher :RPL_TOPIC 'topic-event (nil
+                                                  (:channel #'make-channel)
+                                                  :new-topic))
 
 ;;; Default event handlers ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod handle-event ((connection connection) (event nick-event))
-  "Changes the nickname associated with a connection when a NICK message for
-   the current nickname is received."
-  (if (string= (nick-of event) (new-nick-of event))
-      (setf (nick-of connection) (new-nick-of event))))
+  "Change the nickname associated with a user, or of the connection if the old
+   nickname is the nickname of the connection."
+  (rename-user connection (nick-of event) (new-nick-of event)))
+
+(defmethod handle-event ((connection connection) (event topic-event))
+  "Change the topic associated with a channel."
+  (setf (topic-of (channel-of event))
+        (new-topic-of event)))
+
+(defmethod handle-event ((connection connection) (event join-event))
+  "Add a user to a channel."
+  (add-user (user-of event) (channel-of event)))
+
+(defmethod handle-event ((connection connection) (event part-event))
+  "Remove a user from a channel they're leaving."
+  (remove-user (user-of event) (channel-of event)))
+
+(defmethod handle-event ((connection connection) (event quit-event))
+  "Remove a user from all channels they're in."
+  (remove-user (user-of event)))
+
+(defmethod handle-event ((connection connection) (event kick-event))
+  "Remove a user from a channel they're kicked from."
+  (remove-user (target-of event) (channel-of event)))
