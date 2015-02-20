@@ -1,0 +1,14 @@
+language: common-lisp
+
+env:
+  matrix:
+    - LISP=sbcl
+    - LISP=ccl
+
+install:
+  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
+  - sudo apt-get update
+
+script:
+  - cl -e '(ql:quickload :birch.test)'
+       -e '(uiop:quit (if (asdf:test-system :birch) 0 -1))'
