@@ -70,8 +70,7 @@
                  :accessor channel-type-of)))
 
 (defclass connection (user)
-  ((socket :type usocket:stream-usocket
-           :initarg :socket
+  ((socket :initarg :socket
            :initform NIL
            :accessor socket-of
            :documentation "An instance of USOCKET:STREAM-USOCKET, the current
