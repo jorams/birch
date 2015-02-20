@@ -16,6 +16,7 @@
   (:export #:raw
            #:pass
            #:nick
+           #:user
            #:join
            #:privmsg
            #:invite
@@ -33,8 +34,7 @@
   (:method ((connection connection) (message string) &rest format-arguments)
     (with-accessors ((stream stream-of)) connection
       (apply #'format stream message format-arguments)
-      (write-char #\Return stream)
-      (write-char #\Linefeed stream)
+      (write-char #\newline stream)
       (finish-output stream))))
 
 (defgeneric pass (connection pass)
