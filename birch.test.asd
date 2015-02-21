@@ -6,11 +6,14 @@
   :license "MIT"
   :depends-on (#:birch #:fiasco #:flexi-streams)
   :pathname "test"
-  :components ((:file "ctcp")
+  :components ((:file "util")
+               (:file "ctcp")
                (:file "parse")
-               (:file "commands"))
+               (:file "commands")
+               (:file "events"))
   :perform (test-op :after (op component)
                     (funcall (intern #.(string :run-package-tests) :fiasco)
                              :packages (list :birch.test/ctcp
                                              :birch.test/parse
-                                             :birch.test/commands))))
+                                             :birch.test/commands
+                                             :birch.test/events))))
