@@ -10,6 +10,7 @@ Birch is built in Common Lisp on SBCL. It depends on:
 - [SPLIT-SEQUENCE](http://www.cliki.net/split-sequence) (Public Domain?)
 - [usocket](http://common-lisp.net/project/usocket/) (MIT)
 - [FLEXI-STREAMS](http://weitz.de/flexi-streams/) (BSD)
+- [Alexandria](http://common-lisp.net/project/alexandria/) (Public Domain)
 
 The tests also use [Fiasco](https://github.com/capitaomorte/fiasco) (Public Domain).
 
