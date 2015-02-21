@@ -5,19 +5,19 @@
                 #:connection
                 #:user
                 #:make-user
-                #:nick-of
+                #:nick
                 #:rename-user
                 #:add-user
                 #:remove-user
 
                 #:channel
                 #:make-channel
-                #:topic-of
-                #:users-of
-                #:channels-of
-                #:channel-type-of)
+                #:topic
+                #:users
+                #:channels
+                #:channel-type)
   (:import-from :birch/commands
-                #:pong)
+                #:/pong)
   (:import-from :alexandria
                 #:removef)
   (:import-from :split-sequence
@@ -35,11 +35,11 @@
            #:kick-event
            #:nick-event
            #:topic-event
-           #:message-of
-           #:channel-of
-           #:target-of
-           #:new-nick-of
-           #:new-topic-of))
+           #:message
+           #:channel
+           #:target
+           #:new-nick
+           #:new-topic))
 (in-package :birch/events)
 
 ;;; Special method combination
@@ -69,7 +69,7 @@
       (if around
           `(call-method ,(first around)
                         (,@(rest around)
-                           (make-method ,form)))
+                         (make-method ,form)))
           form))))
 
 ;;; Somewhat low-level message handling
@@ -97,8 +97,8 @@
   (destructuring-bind (server-1 &optional server-2)
       params
     (if server-2
-        (pong connection server-1 server-2)
-        (pong connection server-1))))
+        (/pong connection server-1 server-2)
+        (/pong connection server-1))))
 
 (defmethod handle-message ((connection connection)
                            prefix
@@ -106,7 +106,7 @@
                            params)
   "Handles an RPL_NAMREPLY message and updates the channel."
   (let ((channel (make-channel connection (third params))))
-    (setf (channel-type-of channel)
+    (setf (channel-type channel)
           (case (char (second params) 0)
             (#\@ :secret)
             (#\* :private)
@@ -125,10 +125,10 @@
 (defclass event ()
   ((user :initarg :user
          :initform NIL
-         :accessor user-of)
+         :accessor user)
    (message :initarg :message
             :initform NIL
-            :accessor message-of)))
+            :accessor message)))
 
 (defgeneric handle-event (connection event)
   (:documentation "Will be called after an IRC message has successfully been
@@ -187,7 +187,7 @@
 (defclass channel-event (event)
   ((channel :initarg :channel
             :initform NIL
-            :accessor channel-of))
+            :accessor channel))
   (:documentation "A CHANNEL-EVENT is an event that happens on a certain
                    channel."))
 
@@ -217,20 +217,20 @@
 (defclass kick-event (channel-event)
   ((target :initarg :target
            :initform NIL
-           :accessor target-of)))
+           :accessor target)))
 (define-event-dispatcher :KICK 'kick-event ((:channel #'make-channel)
                                             (:target #'make-user)))
 
 (defclass nick-event (event)
   ((new-nick :initarg :new-nick
              :initform NIL
-             :accessor new-nick-of)))
+             :accessor new-nick)))
 (define-event-dispatcher :NICK 'nick-event (:new-nick))
 
 (defclass topic-event (channel-event)
   ((new-topic :initarg :new-topic
               :initform NIL
-              :accessor new-topic-of)))
+              :accessor new-topic)))
 (define-event-dispatcher :TOPIC 'topic-event ((:channel #'make-channel)
                                               :new-topic))
 (define-event-dispatcher :RPL_TOPIC 'topic-event (nil
@@ -242,25 +242,25 @@
 (defmethod handle-event ((connection connection) (event nick-event))
   "Change the nickname associated with a user, or of the connection if the old
    nickname is the nickname of the connection."
-  (rename-user connection (nick-of event) (new-nick-of event)))
+  (rename-user connection (nick event) (new-nick event)))
 
 (defmethod handle-event ((connection connection) (event topic-event))
   "Change the topic associated with a channel."
-  (setf (topic-of (channel-of event))
-        (new-topic-of event)))
+  (setf (topic (channel event))
+        (new-topic event)))
 
 (defmethod handle-event ((connection connection) (event join-event))
   "Add a user to a channel."
-  (add-user (user-of event) (channel-of event)))
+  (add-user (user event) (channel event)))
 
 (defmethod handle-event ((connection connection) (event part-event))
   "Remove a user from a channel they're leaving."
-  (remove-user (user-of event) (channel-of event)))
+  (remove-user (user event) (channel event)))
 
 (defmethod handle-event ((connection connection) (event quit-event))
   "Remove a user from all channels they're in."
-  (remove-user (user-of event)))
+  (remove-user (user event)))
 
 (defmethod handle-event ((connection connection) (event kick-event))
   "Remove a user from a channel they're kicked from."
-  (remove-user (target-of event) (channel-of event)))
+  (remove-user (target event) (channel event)))

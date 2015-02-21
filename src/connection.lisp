@@ -5,29 +5,27 @@
                 #:removef
                 #:ensure-list)
   (:export #:connection
-           #:socket-of
-           #:stream-of
+           #:socket-stream
+           #:connect-socket
            #:activep
-           #:server-host-of
-           #:server-port-of
-           #:nick-of
-           #:user-of
-           #:pass-of
-           #:real-name-of
-
-           #:connection-of
+           #:server-host
+           #:server-port
+           #:nick
+           #:user
+           #:pass
+           #:real-name
 
            #:channel-type
            #:channel
            #:make-channel
-           #:name-of
-           #:topic-of
-           #:channel-type-of
+           #:name
+           #:topic
+           #:channel-type
 
            #:user
            #:make-user
-           #:channels-of
-           #:users-of
+           #:channels
+           #:users
 
            #:add-user
            #:rename-user
@@ -38,46 +36,46 @@
 
 (defclass user ()
   ((connection :initarg :connection
-               :accessor connection-of)
+               :accessor connection)
    (nick :initarg :nick
-         :accessor nick-of)
+         :accessor nick)
    (user :initarg :user
          :initform nil
-         :accessor user-of)
+         :accessor user)
    (host :initarg :host
          :initform nil
-         :accessor host-of)
+         :accessor host)
    (channels :initarg :channels
              :initform ()
-             :accessor channels-of)))
+             :accessor channels)))
 
 (deftype channel-type ()
   '(member :public :private :secret))
 
 (defclass channel ()
   ((connection :initarg :connection
-               :reader connection-of)
+               :reader connection)
    (name :initarg :name
-         :reader name-of)
+         :reader name)
    (users :initarg :users
           :initform ()
-          :accessor users-of)
+          :accessor users)
    (topic :initarg :topic
           :initform ""
-          :accessor topic-of)
+          :accessor topic)
    (channel-type :initarg :channel-type
                  :type channel-type
-                 :accessor channel-type-of)))
+                 :accessor channel-type)))
 
 (defclass connection (user)
-  ((socket :initarg :socket
-           :initform NIL
-           :accessor socket-of
-           :documentation "An instance of USOCKET:STREAM-USOCKET, the current
+  ((%socket :initarg :socket
+            :initform NIL
+            :accessor %socket
+            :documentation "An instance of USOCKET:STREAM-USOCKET, the current
                            socket connection to the server.")
    (socket-stream :initarg :stream
                   :initform NIL
-                  :accessor stream-of
+                  :accessor socket-stream
                   :documentation "The stream associated with the current socket
                                   connection to the server.")
    (activep :initarg :activep
@@ -89,40 +87,52 @@
                                whether or not to reconnect")
    (server-host :initarg :server-host
                 :initform (error "Host required, not specified")
-                :reader server-host-of)
+                :reader server-host)
    (server-port :initarg :server-port
                 :initform 6667
-                :accessor server-port-of)
+                :accessor server-port)
    (pass :initarg :pass
          :initform NIL
-         :accessor pass-of)
+         :accessor pass)
    (real-name :initarg :real-name
               :initform "Birch IRC library"
-              :accessor real-name-of)
+              :accessor real-name)
    (users :initarg :users
           :initform ()
-          :accessor users-of))
+          :accessor users))
   (:default-initargs :nick (error "Nick required, not specified")))
 
 (defmethod initialize-instance :after ((connection connection)
                                        &key &allow-other-keys)
-  (setf (connection-of connection) connection)
-  (push connection (users-of connection)))
+  (setf (connection connection) connection)
+  (push connection (users connection)))
+
+(defun connect-socket (connection)
+  (let ((socket (usocket:socket-connect (server-host connection)
+                                        (server-port connection)
+                                        :element-type '(unsigned-byte 8))))
+    ;; Initialization
+    (setf (%socket connection) socket
+          (socket-stream connection)
+          (flexi-streams:make-flexi-stream
+           (usocket:socket-stream socket)
+           :external-format '(:UTF-8 :eol-style :crlf))
+          (activep connection) t)))
 
 ;;; Channel and user API ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun get-channel (connection name)
-  (find name (channels-of connection)
+  (find name (channels connection)
         :test #'string=
-        :key #'name-of))
+        :key #'name))
 
 (defun get-user (connection nick &optional user host)
-  (let ((found (find nick (users-of connection)
+  (let ((found (find nick (users connection)
                      :test #'string=
-                     :key #'nick-of)))
+                     :key #'nick)))
     (when (and found user host)
-      (setf (user-of found) user
-            (host-of found) host))
+      (setf (user found) user
+            (host found) host))
     found))
 
 (defun valid-channel-name-p (name)
@@ -137,7 +147,7 @@ will be returned. NIL is returned if NAME is not a valid channel name."
         (let ((channel (make-instance 'channel
                                       :connection connection
                                       :name name)))
-          (push channel (channels-of connection))
+          (push channel (channels connection))
           channel))))
 
 (defun make-user (connection nick/prefix)
@@ -153,21 +163,21 @@ both a USER and HOST component, those slots of the user object will be updated."
                                    :nick nick
                                    :user user
                                    :host host)))
-          (push user (users-of connection))
+          (push user (users connection))
           user))))
 
 (defun rename-user (connection old-nick new-nick)
-  (setf (nick-of (get-user connection old-nick)) new-nick))
+  (setf (nick (get-user connection old-nick)) new-nick))
 
 (defun add-user (user channel)
-  (pushnew user (users-of channel))
-  (pushnew channel (channels-of user)))
+  (pushnew user (users channel))
+  (pushnew channel (channels user)))
 
 (defun remove-user (user &optional channel)
   (cond
-    (channel (removef (channels-of user) channel)
-             (removef (users-of channel) user))
-    (t (dolist (channel (channels-of user))
+    (channel (removef (channels user) channel)
+             (removef (users channel) user))
+    (t (dolist (channel (channels user))
          (remove-user user channel))))
-  (when (not (channels-of user))
-    (removef (users-of (connection-of user)) user)))
+  (when (not (channels user))
+    (removef (users (connection user)) user)))

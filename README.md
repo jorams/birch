@@ -47,7 +47,7 @@ The only required initargs for the default connection class are `:SERVER-HOST` a
 - `:PASS`, the password to send. If not supplied no password will be sent.
 - `:REAL-NAME`, the real name to register with (defaults to "Birch IRC library")
 
-The accessors for all of those are the name of the slot (the initarg without the ':') suffixed with `-OF`.
+The accessors for all of those are the name of the slot (the initarg without the ':').
 
 Event handling in Birch is done by defining methods on `HANDLE-EVENT`.
 
@@ -63,23 +63,25 @@ For example, to do something when a PRIVMSG is received, you define a method spe
 
 ```lisp
 (defmethod handle-event ((connection my-connection) (event privmsg-event))
-  (format t "Message received on ~A: ~A" (channel-of event) (message-of event)))
+  (format t "Message received on ~A: ~A" (channel event) (message event)))
 ```
 
 A list of all the events currently included in Birch is [below](#events).
 
-Sending commands to a connection can be done in two ways. You can use the generic function `RAW`, which is basically a glorified `FORMAT`, or you can use one of the built-in functions for sending often-used commands. They're all generic functions and can thus easily be extended.
+Sending commands to a connection can be done in two ways. You can use the generic function `/RAW`, which is basically a glorified `FORMAT`, or you can use one of the built-in functions for sending often-used commands. They're all generic functions and can thus easily be extended.
 
 `RAW` can, for example, be called like this:
 
 ```lisp
-(raw connection "JOIN ~A" channel)
+(/raw connection "JOIN ~A" channel)
 ```
-But you should probably just use the function `JOIN` in this case.
+But you should probably just use the function `/JOIN` in this case.
 
 All currently implemented commands are listed [below](#commands).
 
-To start handling messages you should call `READ-MESSAGE-LOOP`, which will block until the connection to the server is closed. Even then, if `QUIT` wasn't called (so the `ACTIVEP` slot on the connection wasn't set to `NIL`) `READ-MESSAGE-LOOP` will try to reconnect. You'll likely want to run this in a new thread.
+To start handling messages you should call `PROCESS-MESSAGE-LOOP`, which will block until the connection to the server is closed. Even then, if `/QUIT` wasn't called (so the `ACTIVEP` slot on the connection wasn't set to `NIL`) `PROCESS-MESSAGE-LOOP` will try to reconnect. You'll likely want to run this in a new thread.
+
+Alternatively, you can call `PROCESS-MESSAGE` yourself.
 
 
 ## We have to go deeper
@@ -142,7 +144,7 @@ For example, kick events are implemented like this:
 (defclass kick-event (channel-event)
   ((target :initarg :target
            :initform NIL
-           :accessor target-of)))
+           :accessor target)))
 
 (define-event-dispatcher :KICK 'kick-event ((:channel #'make-channel)
                                             (:target #'make-user)))
@@ -154,18 +156,18 @@ For example, kick events are implemented like this:
 
     `EVENT` has a couple of slots, which you can access using the following accessors:
 
-    - `NICK-OF`, the nickname of the sender of the message. Taken from the message's prefix.
-    - `USER-OF`, the username of the sender of the message. Also taken from the message's prefix.
-    - `HOST-OF`, the hostname of the sender of the message. Also taken from the message's prefix.
-    - `MESSAGE-OF`, a string containing all of the parameters supplied with the message, separated by spaces. Note that the "trailing" parameter is not prefixed with a ':', so you can't recognize it from here.
+    - `NICK`, the nickname of the sender of the message. Taken from the message's prefix.
+    - `USER`, the username of the sender of the message. Also taken from the message's prefix.
+    - `HOST`, the hostname of the sender of the message. Also taken from the message's prefix.
+    - `MESSAGE`, a string containing all of the parameters supplied with the message, separated by spaces. Note that the "trailing" parameter is not prefixed with a ':', so you can't recognize it from here.
 
     Subclasses of `EVENT` are:
     - `QUIT-EVENT`
-    - `NICK-EVENT` which adds a slot, accessed with `NEW-NICK-OF`. It contains the new nick of the person whose nick has changed.
+    - `NICK-EVENT` which adds a slot, accessed with `NEW-NICK`. It contains the new nick of the person whose nick has changed.
 
 - `CHANNEL-EVENT`, which is a superclass of all events happening on a certain channel.
 
-    `CHANNEL-EVENT` adds another slot, accessed with `CHANNEL-OF`.
+    `CHANNEL-EVENT` adds another slot, accessed with `CHANNEL`.
     The subclasses of `CHANNEL-EVENT` are:
 
     - `PRIVMSG-EVENT`
@@ -173,26 +175,26 @@ For example, kick events are implemented like this:
     - `JOIN-EVENT`
     - `PART-EVENT`
     - `PART-EVENT`
-    - `KICK-EVENT` which adds a slot, accessed with `TARGET-OF`. It contains the nick of the person being kicked.
+    - `KICK-EVENT` which adds a slot, accessed with `TARGET`. It contains the nick of the person being kicked.
 
-    - `TOPIC-EVENT` which adds a slot, accessed with `NEW-TOPIC-OF`. It contains the new topic of the channel.
+    - `TOPIC-EVENT` which adds a slot, accessed with `NEW-TOPIC`. It contains the new topic of the channel.
 
 ## Commands
 
-- `(pass connection password)`
-- `(nick connection nick)`
-- `(user connection username mode real-name)`
-- `(join connection channel &optional key)`
-- `(privmsg connection channel message)`
-- `(invite connection nick channel)`
-- `(kick connection channel nick &optional message)`
-- `(part connection channel &optional message)`
-- `(quit connection &optional message)`
-- `(pong connection server-1 &optional server-2)` You shouldn't need this, as Birch automatically responds to PING.
+- `(/pass connection password)`
+- `(/nick connection nick)`
+- `(/user connection username mode real-name)`
+- `(/join connection channel &optional key)`
+- `(/privmsg connection channel message)`
+- `(/invite connection nick channel)`
+- `(/kick connection channel nick &optional message)`
+- `(/part connection channel &optional message)`
+- `(/quit connection &optional message)`
+- `(/pong connection server-1 &optional server-2)` You shouldn't need this, as Birch automatically responds to PING.
 
 ## Users and Channels
 
-Birch keeps track of users and channels for you. The default events call `MAKE-USER` and `MAKE-CHANNEL` on the appropriate parameters, turning them into `USER` and `CHANNEL` objects with appropriate slots. To get a list of all users in a channel, call `USERS-OF` on the channel object. Similarly, to get all channels a user is in (that we know of), call `CHANNELS-OF` on a user object.
+Birch keeps track of users and channels for you. The default events call `MAKE-USER` and `MAKE-CHANNEL` on the appropriate parameters, turning them into `USER` and `CHANNEL` objects with appropriate slots. To get a list of all users in a channel, call `USERS` on the channel object. Similarly, to get all channels a user is in (that we know of), call `CHANNELS` on a user object.
 
 It is worth noting that `CONNECTION` is itself a subclass of `USER` and will appear in appear channel user lists.
 
@@ -210,7 +212,7 @@ Birch provides two utility functions for working with [CTCP](https://en.wikipedi
 
 ## Notes
 
-- The test coverage is, at the moment, very low. The only things being tested are the message parser and the CTCP utilities.
+- The test coverage is, at the moment, very low. The only things being tested are the message parser, the CTCP utilities and the command-sending functions.
 - Birch does not handle errors in your event handlers, which can result in the connection staying open while the bot/client/whatever has crashed. This can be prevented, for example, by defining an `:AROUND` method on `HANDLE-EVENT`, like so:
 
   ```lisp
