@@ -1,61 +1,16 @@
 (fiasco:define-test-package :birch.test/commands
+  (:use :cl :birch/commands :birch.test/util)
   (:import-from :birch/connection
-                #:connection
-                #:socket-stream
                 #:make-channel
                 #:make-user
-                #:activep)
-  (:import-from :flexi-streams
-                #:string-to-octets
-                #:make-in-memory-output-stream
-                #:get-output-stream-sequence
-                #:flexi-stream-stream
-                #:make-flexi-stream)
-  (:use :cl :birch/commands))
+                #:activep))
 (in-package :birch.test/commands)
 
-(defclass test-connection (connection) ()
-  (:default-initargs
-   :server-host "127.0.0.1"
-   :nick "test"))
-
-(defun message-ify (string)
-  (coerce (string-to-octets
-           (format nil "~A~A~A" string #\return #\linefeed))
-          'list))
-
-(defmacro is-message (stream command result)
-  `(progn ,command
-          (is (equal (get-output-stream-sequence ,stream :as-list t)
-                     (message-ify ,result)))))
-
-(defmacro with-test-connection ((connection-symbol stream-symbol)
-                                &body body)
-  `(let* ((,connection-symbol
-            (make-instance
-             'test-connection
-             :stream (make-flexi-stream
-                      (make-in-memory-output-stream)
-                      :external-format '(:UTF-8 :eol-style :crlf))))
-          (,stream-symbol (flexi-stream-stream
-                           (socket-stream ,connection-symbol))))
-     ,@body))
-
-(defmacro define-message-test (name (connection-symbol)
-                               &body body)
-  (let ((stream-symbol (gensym)))
-    `(deftest ,name ()
-       (with-test-connection (,connection-symbol ,stream-symbol)
-         ,@(loop for (command result) in body
-                 collect `(is-message ,stream-symbol
-                                      ,command
-                                      ,result))))))
-
-(define-message-test test-raw (connection)
+(define-message-test raw-test (connection)
   ((/raw connection "TEST ~A message ~A" #\a 1)
    "TEST a message 1"))
 
-(define-message-test test-pass (connection)
+(define-message-test pass-test (connection)
   ((/pass connection "secretpasswordhere")
    "PASS secretpasswordhere"))
 
