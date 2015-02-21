@@ -38,7 +38,7 @@
 
 (defclass user ()
   ((connection :initarg :connection
-               :reader connection-of)
+               :accessor connection-of)
    (nick :initarg :nick
          :accessor nick-of)
    (user :initarg :user
@@ -106,6 +106,7 @@
 
 (defmethod initialize-instance :after ((connection connection)
                                        &key &allow-other-keys)
+  (setf (connection-of connection) connection)
   (push connection (users-of connection)))
 
 ;;; Channel and user API ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
