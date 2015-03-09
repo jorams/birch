@@ -15,6 +15,7 @@
            #:pass
            #:real-name
 
+           #:*channel-class*
            #:channel-type
            #:channel
            #:make-channel
@@ -22,6 +23,7 @@
            #:topic
            #:channel-type
 
+           #:*user-class*
            #:user
            #:make-user
            #:channels
@@ -33,6 +35,9 @@
 (in-package :birch/connection)
 
 ;;; Core classes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar *user-class* 'user)
+(defvar *channel-class* 'channel)
 
 (defclass user ()
   ((connection :initarg :connection
@@ -144,7 +149,7 @@ result in a new CHANNEL object, for ones that are already known the existing one
 will be returned. NIL is returned if NAME is not a valid channel name."
   (when (valid-channel-name-p name)
     (or (get-channel connection name)
-        (let ((channel (make-instance 'channel
+        (let ((channel (make-instance *channel-class*
                                       :connection connection
                                       :name name)))
           (push channel (channels connection))
@@ -158,7 +163,7 @@ both a USER and HOST component, those slots of the user object will be updated."
   (destructuring-bind (nick &optional user host)
       (ensure-list nick/prefix)
     (or (get-user connection nick user host)
-        (let ((user (make-instance 'user
+        (let ((user (make-instance *user-class*
                                    :connection connection
                                    :nick nick
                                    :user user
