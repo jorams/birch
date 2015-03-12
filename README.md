@@ -214,7 +214,7 @@ Birch provides two utility functions for working with [CTCP](https://en.wikipedi
 
 ## Notes
 
-- The test coverage is, at the moment, very low. The only things being tested are the message parser, the CTCP utilities and the command-sending functions.
+- The test coverage is not yet as good as I'd like it to be.
 - Birch does not handle errors in your event handlers, which can result in the connection staying open while the bot/client/whatever has crashed. This can be prevented, for example, by defining an `:AROUND` method on `HANDLE-EVENT`, like so:
 
   ```lisp
