@@ -105,7 +105,7 @@
    (user-class :initarg :user-class
                :initform 'user
                :accessor user-class)
-   (channel-class :initarg :user-class
+   (channel-class :initarg :channel-class
                   :initform 'channel
                   :accessor channel-class))
   (:default-initargs :nick (error "Nick required, not specified")))
