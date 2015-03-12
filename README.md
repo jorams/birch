@@ -196,7 +196,7 @@ For example, kick events are implemented like this:
 
 Birch keeps track of users and channels for you. The default events call `MAKE-USER` and `MAKE-CHANNEL` on the appropriate parameters, turning them into `USER` and `CHANNEL` objects with appropriate slots. To get a list of all users in a channel, call `USERS` on the channel object. Similarly, to get all channels a user is in (that we know of), call `CHANNELS` on a user object.
 
-It is possible to change the class instantiated by `MAKE-USER` and `MAKE-CHANNEL`, by binding `*user-class*` or `*channel-class*` to the desired class name.
+It is possible to change the class instantiated by `MAKE-USER` and `MAKE-CHANNEL`, by passing the desired class name to the `:user-class` or `:channel-class` initargs when creating the instance. This setting can also be changed after the fact with the accessors `USER-CLASS` and `CHANNEL-CLASS`.
 
 It is worth noting that `CONNECTION` is itself a subclass of `USER` and will appear in channel user lists.
 

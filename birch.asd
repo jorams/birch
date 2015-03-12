@@ -3,7 +3,7 @@
   :description "A simple Common Lisp IRC client library"
   :author "Joram Schrijver <i@joram.io>"
   :license "MIT"
-  :version "1.0.0"
+  :version "1.0.1"
   :depends-on (#:split-sequence #:usocket #:flexi-streams #:alexandria)
   :pathname "src"
   :components ((:file "replies")
