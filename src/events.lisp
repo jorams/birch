@@ -242,7 +242,7 @@
 (defmethod handle-event ((connection connection) (event nick-event))
   "Change the nickname associated with a user, or of the connection if the old
    nickname is the nickname of the connection."
-  (rename-user connection (nick event) (new-nick event)))
+  (rename-user connection (nick (user event)) (new-nick event)))
 
 (defmethod handle-event ((connection connection) (event topic-event))
   "Change the topic associated with a channel."
