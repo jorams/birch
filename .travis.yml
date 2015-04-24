@@ -11,4 +11,8 @@ install:
 
 script:
   - cl -e '(ql:quickload :birch.test)'
-       -e '(uiop:quit (if (asdf:test-system :birch) 0 -1))'
+       -e '(setf *debugger-hook*
+                 (lambda (c h)
+                   (declare (ignore c h))
+                   (uiop:quit -1)))'
+       -e '(asdf:test-system :birch)'

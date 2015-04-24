@@ -1,5 +1,5 @@
-(fiasco:define-test-package :birch.test/events
-  (:use :cl :birch/events :birch.test/util)
+(defpackage :birch.test/events
+  (:use :cl :birch/events :birch.test/util :prove)
   (:import-from :birch/parse
                 #:parse-message)
   (:import-from :birch/connection
@@ -10,6 +10,8 @@
                 #:channel-type
                 #:nick))
 (in-package :birch.test/events)
+
+;;; Infrastructure
 
 (defvar *result-tag* (gensym)
   "A tag that methods created by DEFINE-EVENT-THROWER will throw at, and which
@@ -37,15 +39,21 @@ thrown at *RESULT-TAG*.
 PAIRS is a list of the form (SYMBOL MESSAGE SYMBOL MESSAGE ...)."
   `(progn
      ,@(loop for (result message) in pairs by #'cddr
-             collect `(is (eq ,result
-                              (catch *result-tag*
+             collect `(ok (eq (catch *result-tag*
                                 (multiple-value-call #'handle-message
                                   ,connection
                                   (parse-message ,message))
                                 ;; Never eq to RESULT
-                                :bla))))))
+                                :bla)
+                              ,result)))))
 
-(deftest message-to-event-test ()
+;;; Tests
+
+(diag "Event tests")
+(plan 3)
+
+(deftest "Message to event"
+  (plan 9)
   (with-test-connection (connection stream)
     (declare (ignore stream))
     (is-thrown-messages (connection)
@@ -59,7 +67,7 @@ PAIRS is a list of the form (SYMBOL MESSAGE SYMBOL MESSAGE ...)."
       (:topic ":irc.example.com 332 test1 #test6 :Topic")
       (:topic ":WiZ!jto@tolsun.oulu.fi TOPIC #test7 :New Topic"))))
 
-(define-message-test pong-test (connection)
+(define-message-test "PING->PONG" (connection)
   ((multiple-value-call #'handle-message connection
      (parse-message "PING :irc.funet.fi"))
    "PONG irc.funet.fi"))
@@ -68,34 +76,35 @@ PAIRS is a list of the form (SYMBOL MESSAGE SYMBOL MESSAGE ...)."
   (multiple-value-call #'handle-message connection
       (parse-message message)))
 
-(deftest namreply-test ()
+(deftest "NAMREPLY"
+  (plan 10)
   (with-test-connection (connection stream)
     (declare (ignore stream))
     (message-connection
      connection
      ":irc.example.com 353 test1 = #test1 :@testop +testvoice test1")
     (let ((channel (make-channel connection "#test1")))
-      (is (= (length (users channel)) 3))
-      (is (member "testvoice" (users channel) :key #'nick :test #'string=))
-      (is (member "testop" (users channel) :key #'nick :test #'string=))
-      (is (member "test1" (users channel) :key #'nick :test #'string=))
-      (is (eq (channel-type channel) :public)))
+      (ok (= (length (users channel)) 3))
+      (ok (member "testvoice" (users channel) :key #'nick :test #'string=))
+      (ok (member "testop" (users channel) :key #'nick :test #'string=))
+      (ok (member "test1" (users channel) :key #'nick :test #'string=))
+      (ok (eq (channel-type channel) :public)))
 
     (message-connection
      connection
      ":irc.example.com 353 test2 @ #test2 :+testvoice test2")
     (let ((channel (make-channel connection "#test2")))
-      (is (= (length (users channel)) 2))
-      (is (eq (channel-type (make-channel connection "#test2"))
+      (ok (= (length (users channel)) 2))
+      (ok (eq (channel-type (make-channel connection "#test2"))
               :secret)))
 
     (message-connection
      connection
      ":irc.example.com 353 test3 * #test3 :@testop +testvoice test3")
-    (is (eq (channel-type (make-channel connection "#test3"))
+    (ok (eq (channel-type (make-channel connection "#test3"))
             :private))
 
-    (is (= (length (channels (make-user connection "testop")))
+    (ok (= (length (channels (make-user connection "testop")))
            2))
-    (is (= (length (channels (make-user connection "testvoice")))
+    (ok (= (length (channels (make-user connection "testvoice")))
            3))))

@@ -4,7 +4,7 @@
   :description "Tests for Birch"
   :author "Joram Schrijver <i@joram.io>"
   :license "MIT"
-  :depends-on (#:birch #:fiasco #:flexi-streams)
+  :depends-on (#:birch #:prove #:flexi-streams)
   :pathname "test"
   :components ((:file "util")
                (:file "ctcp")
@@ -12,8 +12,10 @@
                (:file "commands")
                (:file "events"))
   :perform (test-op :after (op component)
-                    (funcall (intern #.(string :run-package-tests) :fiasco)
-                             :packages (list :birch.test/ctcp
-                                             :birch.test/parse
-                                             :birch.test/commands
-                                             :birch.test/events))))
+             (let ((results (mapcar (intern #.(string :run-test-package) :prove)
+                                    (list :birch.test/ctcp
+                                          :birch.test/parse
+                                          :birch.test/commands
+                                          :birch.test/events))))
+               (unless (every #'identity results)
+                 (error "Tests failed.")))))

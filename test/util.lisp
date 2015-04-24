@@ -1,5 +1,5 @@
 (defpackage :birch.test/util
-  (:use :cl :fiasco)
+  (:use :cl :prove)
   (:import-from :flexi-streams
                 #:string-to-octets
                 #:make-in-memory-output-stream
@@ -40,13 +40,14 @@
 
 (defmacro is-message (stream command result)
   `(progn ,command
-          (is (equal (get-output-stream-sequence ,stream :as-list t)
-                     (message-ify ,result)))))
+          (is (get-output-stream-sequence ,stream :as-list t)
+              (message-ify ,result))))
 
-(defmacro define-message-test (name (connection-symbol)
+(defmacro define-message-test (description (connection-symbol)
                                &body pairs)
   (let ((stream-symbol (gensym)))
-    `(deftest ,name ()
+    `(deftest ,description
+       (plan ,(length pairs))
        (with-test-connection (,connection-symbol ,stream-symbol)
          ,@(loop for (command result) in pairs
                  collect `(is-message ,stream-symbol
