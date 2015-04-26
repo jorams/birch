@@ -41,13 +41,13 @@
   ;; We keep executing PROCESS-MESSAGE until END-OF-FILE is reached. In that
   ;; case, we check if we wanted to quit, and if not we try to reconnect until
   ;; that succeeds.
-  (loop until (handler-case
-                  (loop (process-message connection))
-                (end-of-file
-                  ()
-                  (if (activep connection)
-                      (loop until (handler-case
-                                      (progn (sleep 5)
-                                             (connect connection)
-                                             t)
-                                    (serious-condition NIL))))))))
+  (loop do (handler-case
+               (loop (process-message connection))
+             (end-of-file ()
+               (if (activep connection)
+                   (handler-case
+                       (progn (sleep 5)
+                              (connect connection)
+                              t)
+                     (serious-condition nil))
+                   (loop-finish))))))
