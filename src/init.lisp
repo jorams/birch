@@ -27,7 +27,13 @@
 
 (defun read-message (connection)
   (parse-message
-   (string-trim '(#\Return) (read-line (socket-stream connection)))))
+   (string-trim '(#\Return)
+                (handler-bind
+                    ((flex:external-format-encoding-error
+                       (lambda (error)
+                         (declare (ignore error))
+                         (invoke-restart 'use-value #\REPLACEMENT_CHARACTER))))
+                  (read-line (socket-stream connection))))))
 
 (defun process-message (connection)
   "Reads a message from CONNECTION and calls HANDLE-MESSAGE on it. Should
