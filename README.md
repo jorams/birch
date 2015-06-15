@@ -14,11 +14,11 @@ Birch is built in Common Lisp on SBCL. It depends on:
 - [FLEXI-STREAMS](http://weitz.de/flexi-streams/) (BSD)
 - [Alexandria](http://common-lisp.net/project/alexandria/) (Public Domain)
 
-The tests also use [Fiasco](https://github.com/capitaomorte/fiasco) (Public Domain).
+The tests also use [Prove](https://github.com/fukamachi/prove) (MIT).
 
 ## Installation
 
-Birch can be loaded with Quicklisp: (but is not currently in the Quicklisp dist)
+Birch can be loaded with Quicklisp:
 
 ```lisp
 (ql:quickload :birch)
