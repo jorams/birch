@@ -124,6 +124,19 @@
                              (t name)))
                 channel))))
 
+(defmethod handle-message ((connection connection)
+                           prefix
+                           (command (eql :RPL_WHOREPLY))
+                           params)
+  "Handles an RPL_WHOREPLY message and updates the users and channels
+    associated."
+  (destructuring-bind
+        (self-nick channel user host server nick flags hopcount-and-real-name)
+      params
+    (declare (ignore self-nick server flags hopcount-and-real-name))
+    (add-user (make-user connection (list nick user host))
+              (make-channel connection channel))))
+
 ;;; The event system ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass event ()
