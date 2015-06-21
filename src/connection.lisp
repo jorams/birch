@@ -25,6 +25,7 @@
 
            #:user-class
            #:user
+           #:host
            #:make-user
            #:channels
            #:users
