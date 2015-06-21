@@ -19,6 +19,7 @@
            #:/user
            #:/join
            #:/privmsg
+           #:/notice
            #:/invite
            #:/kick
            #:/part
@@ -74,6 +75,17 @@
     (/privmsg connection (name channel) message))
   (:method ((connection connection) (user user) (message string))
     (/privmsg connection (nick user) message)))
+
+(defgeneric /notice (connection target message)
+  (:documentation
+   "Sends a NOTICE message to CONNECTION. TARGET should either be a channel
+     name or the name of a user connected to the network.")
+  (:method ((connection connection) (target string) (message string))
+    (/raw connection "NOTICE ~A :~A" target message))
+  (:method ((connection connection) (target channel) (message string))
+    (/notice connection (name target) message))
+  (:method ((connection connection) (target user) (message string))
+    (/notice connection (nick target) message)))
 
 (defgeneric /invite (connection nick channel)
   (:documentation "Sends an INVITE message to CONNECTION, trying to invite NICK
