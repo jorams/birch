@@ -114,11 +114,28 @@
     (dolist (name (split-sequence #\space (fourth params)
                                   :remove-empty-subseqs t))
       (add-user (make-user connection
-                           (case (char name 0)
-                             ;; We currently ignore op or voice status
-                             ((#\@ #\+) (subseq name 1))
+                           (cond
+                             ;; Strip operator symbol prefix
+                             ;; (anything that is not letter | special).
+                             ((let ((first (char name 0)))
+                                (not (or (alpha-char-p first)
+                                         (find first "[]\\`_^{|}"))))
+                              (subseq name 1))
                              (t name)))
                 channel))))
+
+(defmethod handle-message ((connection connection)
+                           prefix
+                           (command (eql :RPL_WHOREPLY))
+                           params)
+  "Handles an RPL_WHOREPLY message and updates the users and channels
+    associated."
+  (destructuring-bind
+        (self-nick channel user host server nick flags hopcount-and-real-name)
+      params
+    (declare (ignore self-nick server flags hopcount-and-real-name))
+    (add-user (make-user connection (list nick user host))
+              (make-channel connection channel))))
 
 ;;; The event system ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -19,11 +19,13 @@
            #:/user
            #:/join
            #:/privmsg
+           #:/notice
            #:/invite
            #:/kick
            #:/part
            #:/quit
-           #:/pong))
+           #:/pong
+           #:/who))
 (in-package :birch/commands)
 
 ;; /RAW is used to send raw messages to the server. The idea to make it work
@@ -73,6 +75,17 @@
     (/privmsg connection (name channel) message))
   (:method ((connection connection) (user user) (message string))
     (/privmsg connection (nick user) message)))
+
+(defgeneric /notice (connection target message)
+  (:documentation
+   "Sends a NOTICE message to CONNECTION. TARGET should either be a channel
+     name or the name of a user connected to the network.")
+  (:method ((connection connection) (target string) (message string))
+    (/raw connection "NOTICE ~A :~A" target message))
+  (:method ((connection connection) (target channel) (message string))
+    (/notice connection (name target) message))
+  (:method ((connection connection) (target user) (message string))
+    (/notice connection (nick target) message)))
 
 (defgeneric /invite (connection nick channel)
   (:documentation "Sends an INVITE message to CONNECTION, trying to invite NICK
@@ -125,3 +138,17 @@
     (if server-2
         (/raw connection "PONG ~A ~A" server-1 server-2)
         (/raw connection "PONG ~A" server-1))))
+
+(defgeneric /who (connection target &optional operators-only-p)
+  (:documentation
+   "Sends a WHO message to CONNECTION about TARGET, optionally
+     requesting operators only. TARGET can be either a user, channel, or
+     string representing the desired mask.")
+  (:method ((connection connection) (target string) &optional operators-only-p)
+    (if operators-only-p
+        (/raw connection "WHO ~A o" target)
+        (/raw connection "WHO ~A" target)))
+  (:method ((connection connection) (target user) &optional operators-only-p)
+    (/who connection (nick target) operators-only-p))
+  (:method ((connection connection) (target channel) &optional operators-only-p)
+    (/who connection (name target) operators-only-p)))
