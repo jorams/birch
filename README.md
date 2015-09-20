@@ -1,6 +1,7 @@
 # Birch
 
 [![Build Status](https://travis-ci.org/jorams/birch.svg?branch=master)](https://travis-ci.org/jorams/birch)
+[![Quicklisp](http://quickdocs.org/badge/birch.svg)](http://quickdocs.org/birch/)
 
 Birch is a simple Common Lisp IRC client library. It makes use of CLOS for
 event handling.
