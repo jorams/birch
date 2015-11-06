@@ -54,10 +54,11 @@ Event handling in Birch is done by defining methods on `HANDLE-EVENT`.
 
 ```lisp
 (defgeneric handle-event (connection event)
-  (:documentation "Will be called after an IRC message has successfully been
-                   parsed and turned into an event. Most IRC messages don't
-                   result in events, should you want to handle them you can
-                   define a method on HANDLE-MESSAGE instead."))
+  (:documentation "
+Will be called after an IRC message has successfully been parsed and turned
+into an event. Most IRC messages don't result in events, should you want to
+handle them you can define a method on HANDLE-MESSAGE instead.")
+  (:method-combination event))
 ```
 
 For example, to do something when a PRIVMSG is received, you define a method specializing the first argument on your connection class and the second on the PRIVMSG-EVENT class:
@@ -91,12 +92,12 @@ If you want to handle a message from the server for which there is no event you 
 
 ```lisp
 (defgeneric handle-message (connection prefix command params)
-  (:documentation "Called when a raw message is returned.
-                   CONNECTION is the connection object of the connection the
-                   message was received on.
-                   PREFIX is a list of (NICK USER HOST)
-                   COMMAND is a keyword, such as :PRIVMSG or :RPL_WELCOME
-                   PARAMS is a list of parameters"))
+  (:documentation "
+Called when a raw message is returned. CONNECTION is the connection object of
+the connection the message was received on. PREFIX is a list of (NICK USER
+HOST) COMMAND is a keyword, such as :PRIVMSG or :RPL_WELCOME PARAMS is a list
+of parameters")
+  (:method-combination event))
 ```
 
 For example, to do something when `RPL_WELCOME` is received, you could define a method like so:
@@ -116,26 +117,26 @@ If you want to handle something as an event you can define a method on `HANDLE-M
 ```lisp
 (defmacro define-event-dispatcher (command class &optional positional-initargs)
   "Defines a method on HANDLE-MESSAGE to handle messages of which the command
-   is COMMAND. This new method will call HANDLE-EVENT with a new instance of
-   type CLASS.
+is COMMAND. This new method will call HANDLE-EVENT with a new instance of type
+CLASS.
 
-   POSITIONAL-INITARGS should be a list of initargs to pass to MAKE-INSTANCE,
-   where the position of the keyword determines the IRC command parameter that
-   will be used as a value. A NIL will cause an IRC parameter to be ignored.
+POSITIONAL-INITARGS should be a list of initargs to pass to MAKE-INSTANCE,
+where the position of the keyword determines the IRC command parameter that
+will be used as a value. A NIL will cause an IRC parameter to be ignored.
 
-   For example, when POSITIONAL-INITARGS is (:CHANNEL), the first parameter of
-   the IRC message will be passed as the initial value of :CHANNEL.
-   If POSITIONAL-INITARGS is (:CHANNEL :TARGET), the first parameter will be
-   passed as the initial value of :CHANNEL, and the second parameter will be
-   passed as the initial value of :TARGET.
+For example, when POSITIONAL-INITARGS is (:CHANNEL), the first parameter of the
+IRC message will be passed as the initial value of :CHANNEL. If
+POSITIONAL-INITARGS is (:CHANNEL :TARGET), the first parameter will be passed
+as the initial value of :CHANNEL, and the second parameter will be passed as
+the initial value of :TARGET.
 
-   Instead of a keyword, an element of POSITIONAL-INITARGS can also be a list of
-   the form (:KEYWORD FUNCTION), which means the value passed as the initarg
-   will be the result of calling FUNCTION with two arguments: the connection
-   object and the IRC parameter.
+Instead of a keyword, an element of POSITIONAL-INITARGS can also be a list of
+the form (:KEYWORD FUNCTION), which means the value passed as the initarg will
+be the result of calling FUNCTION with two arguments: the connection object and
+the IRC parameter.
 
-   Any remaining arguments will be joined together (separated by spaces) and
-   passed as the initial value of :MESSAGE."
+Any remaining arguments will be joined together (separated by spaces) and
+passed as the initial value of :MESSAGE."
   ...)
 ```
 

@@ -31,8 +31,9 @@
 ;; /RAW is used to send raw messages to the server. The idea to make it work
 ;; somewhat like FORMAT came from Colleen, by Shinmera (Nicolas Hafner).
 (defgeneric /raw (connection message &rest format-arguments)
-  (:documentation "Sends MESSAGE to the stream associated with CONNECTION,
-                   after applying FORMAT to message with FORMAT-ARGUMENTS.")
+  (:documentation "
+Sends MESSAGE to the stream associated with CONNECTION, after applying FORMAT
+to message with FORMAT-ARGUMENTS.")
   (:method ((connection connection) (message string) &rest format-arguments)
     (with-accessors ((stream socket-stream)) connection
       (apply #'format stream message format-arguments)
@@ -40,8 +41,8 @@
       (finish-output stream))))
 
 (defgeneric /pass (connection pass)
-  (:documentation "Sends a PASS message to CONNECTION, for the purpose of
-                   registration.")
+  (:documentation "
+Sends a PASS message to CONNECTION, for the purpose of registration.")
   (:method ((connection connection) pass) (/raw connection "PASS ~A" pass)))
 
 (defgeneric /nick (connection nick)
@@ -51,9 +52,10 @@
 
 (defgeneric /user (connection user mode real-name)
   (:documentation
-   "Sends a USER message to CONNECTION, for the purpose of registration.
-     Note that the IRC USER command also takes another parameter between MODE
-     and REAL-NAME, but this parameter is unused.")
+   "
+Sends a USER message to CONNECTION, for the purpose of registration. Note that
+the IRC USER command also takes another parameter between MODE and REAL-NAME,
+but this parameter is unused.")
   (:method ((connection connection) (user string) (mode integer)
             (real-name string))
     (/raw connection "USER ~A ~A * :~A" user mode real-name)))
@@ -67,8 +69,9 @@
 
 (defgeneric /privmsg (connection channel message)
   (:documentation
-   "Sends a PRIVMSG message to CONNECTION. CHANNEL should either be a channel
-     name or the name of a user connected to the network.")
+   "
+Sends a PRIVMSG message to CONNECTION. CHANNEL should either be a channel name
+or the name of a user connected to the network.")
   (:method ((connection connection) (channel string) (message string))
     (/raw connection "PRIVMSG ~A :~A" channel message))
   (:method ((connection connection) (channel channel) (message string))
@@ -78,8 +81,9 @@
 
 (defgeneric /notice (connection target message)
   (:documentation
-   "Sends a NOTICE message to CONNECTION. TARGET should either be a channel
-     name or the name of a user connected to the network.")
+   "
+Sends a NOTICE message to CONNECTION. TARGET should either be a channel name or
+the name of a user connected to the network.")
   (:method ((connection connection) (target string) (message string))
     (/raw connection "NOTICE ~A :~A" target message))
   (:method ((connection connection) (target channel) (message string))
@@ -88,8 +92,8 @@
     (/notice connection (nick target) message)))
 
 (defgeneric /invite (connection nick channel)
-  (:documentation "Sends an INVITE message to CONNECTION, trying to invite NICK
-                   to CHANNEL")
+  (:documentation "
+Sends an INVITE message to CONNECTION, trying to invite NICK to CHANNEL")
   (:method ((connection connection) (user string) (channel string))
     (/raw connection "INVITE ~A ~A" user channel))
   (:method ((connection connection) (user user) (channel channel))
@@ -100,8 +104,8 @@
     (/invite connection user (name channel))))
 
 (defgeneric /kick (connection channel nick &optional message)
-  (:documentation "Sends a KICK message to CONNECTION, trying to kick NICK from
-                   CHANNEL")
+  (:documentation "
+Sends a KICK message to CONNECTION, trying to kick NICK from CHANNEL")
   (:method ((connection connection) (channel string) (user string)
             &optional message)
     (/raw connection "KICK ~A ~A~@[ :~A~]" channel user message))
@@ -123,17 +127,17 @@
     (/part connection (name channel) message)))
 
 (defgeneric /quit (connection &optional message)
-  (:documentation "Sends a QUIT message to CONNECTION and sets
-                   (ACTIVEP CONNECTION) to T, which will stop
-                   READ-MESSAGE-LOOP from trying to reconnect")
+  (:documentation "
+Sends a QUIT message to CONNECTION and sets (ACTIVEP CONNECTION) to T, which
+will stop READ-MESSAGE-LOOP from trying to reconnect")
   (:method ((connection connection)
             &optional (message "Birch, Common Lisp IRC library"))
     (setf (activep connection) NIL)
     (/raw connection "QUIT :~A" message)))
 
 (defgeneric /pong (connection server-1 &optional server-2)
-  (:documentation "Sends a PONG message to CONNECTION, usually in reply to a
-                   PING by the server")
+  (:documentation "
+Sends a PONG message to CONNECTION, usually in reply to a PING by the server")
   (:method ((connection connection) (server-1 string) &optional server-2)
     (if server-2
         (/raw connection "PONG ~A ~A" server-1 server-2)
@@ -141,9 +145,10 @@
 
 (defgeneric /who (connection target &optional operators-only-p)
   (:documentation
-   "Sends a WHO message to CONNECTION about TARGET, optionally
-     requesting operators only. TARGET can be either a user, channel, or
-     string representing the desired mask.")
+   "
+Sends a WHO message to CONNECTION about TARGET, optionally requesting operators
+only. TARGET can be either a user, channel, or string representing the desired
+mask.")
   (:method ((connection connection) (target string) &optional operators-only-p)
     (if operators-only-p
         (/raw connection "WHO ~A o" target)

@@ -514,13 +514,13 @@
               (999 . :ERR_NUMERIC_ERR)
               ))))
   "Hash-table filled with all numeric IRC reply codes, taken from
-   https://www.alien.net.au/irc/irc2numerics.html")
+https://www.alien.net.au/irc/irc2numerics.html")
 
 (defun reply->keyword (reply-code)
   "Turns a string representing a reply into an appropriate keyword. Numeric
-   replies are converted to keywords based on their names as listed on
-   https://www.alien.net.au/irc/irc2numerics.html
-   Other replies are simply turned into keywords an returned."
+replies are converted to keywords based on their names as listed on
+https://www.alien.net.au/irc/irc2numerics.html Other replies are simply turned
+into keywords an returned."
   (nth-value 0 ; Both GETHASH and INTERN return two unwanted values
              (handler-case (gethash (parse-integer
                                      (princ-to-string reply-code))

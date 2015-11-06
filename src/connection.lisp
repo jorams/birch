@@ -74,20 +74,21 @@
   ((%socket :initarg :socket
             :initform NIL
             :accessor %socket
-            :documentation "An instance of USOCKET:STREAM-USOCKET, the current
-                           socket connection to the server.")
+            :documentation "
+An instance of USOCKET:STREAM-USOCKET, the current socket connection to the
+server.")
    (socket-stream :initarg :stream
                   :initform NIL
                   :accessor socket-stream
-                  :documentation "The stream associated with the current socket
-                                  connection to the server.")
+                  :documentation "
+The stream associated with the current socket connection to the server.")
    (activep :initarg :activep
             :initform NIL
             :accessor activep
-            :documentation "Whether or not the connection to the server is
-                               supposed to be open. In case of connection
-                               issues READ-MESSAGE-LOOP uses this to determine
-                               whether or not to reconnect")
+            :documentation "
+Whether or not the connection to the server is supposed to be open. In case of
+connection issues READ-MESSAGE-LOOP uses this to determine whether or not to
+reconnect")
    (server-host :initarg :server-host
                 :initform (error "Host required, not specified")
                 :reader server-host)
@@ -149,8 +150,8 @@
 
 (defun make-channel (connection name)
   "Turn a channel name into a CHANNEL object. For unknown channels this will
-result in a new CHANNEL object, for ones that are already known the existing one
-will be returned. NIL is returned if NAME is not a valid channel name."
+result in a new CHANNEL object, for ones that are already known the existing
+one will be returned. NIL is returned if NAME is not a valid channel name."
   (when (valid-channel-name-p name)
     (or (get-channel connection name)
         (let ((channel (make-instance (channel-class connection)
@@ -163,7 +164,8 @@ will be returned. NIL is returned if NAME is not a valid channel name."
   "Turn a user's nick or prefix into a USER object. For unknown users this will
 result in a new USER object, for ones that are already known the existing one
 will be returned. If the user is already known and NICK/PREFIX is a prefix with
-both a USER and HOST component, those slots of the user object will be updated."
+both a USER and HOST component, those slots of the user object will be
+updated."
   (destructuring-bind (nick &optional user host)
       (ensure-list nick/prefix)
     (or (get-user connection nick user host)

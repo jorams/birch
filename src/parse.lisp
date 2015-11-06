@@ -7,22 +7,22 @@
 
 (defun parse-prefix (prefix)
   "Parses a prefix, assumed to still have the ':' at the front.
-   Returns 3 values:
-   - NICK (or server name)
-   - USER
-   - HOST
-   Note that this function also succeeds when a user is supplied but not a
-   host, even though that isn't valid according to RFC2812."
+Returns 3 values:
+- NICK (or server name)
+- USER
+- HOST
+Note that this function also succeeds when a user is supplied but not a
+host, even though that isn't valid according to RFC2812."
   (let* ((names+host (split-sequence #\@ (subseq prefix 1)))
          (nick+user (split-sequence #\! (first names+host))))
     (values (first nick+user) (second nick+user) (second names+host))))
 
 (defun parse-message (message)
   "Parses MESSAGE into a couple of parts:
-   - PREFIX as a list consisting of SOURCE, USER and HOST
-   - COMMAND as a keyword, numerics are converted to their keyword equivalent
-   - PARAMS as a list of strings
-   The trailing argument, if available, will be the last item in PARAMS"
+- PREFIX as a list consisting of SOURCE, USER and HOST
+- COMMAND as a keyword, numerics are converted to their keyword equivalent
+- PARAMS as a list of strings
+The trailing argument, if available, will be the last item in PARAMS"
   (let* ((final-argument (search " :" message))
          (arguments (append (split-sequence #\Space
                                             message

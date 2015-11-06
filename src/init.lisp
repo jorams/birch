@@ -15,7 +15,7 @@
 
 (defun connect (connection)
   "Connects to the IRC network denoted by CONNECTION. Opens a connection to the
-   server and performs initial registration."
+server and performs initial registration."
   ;; Initialization
   (connect-socket connection)
   (unless (user connection)
@@ -37,7 +37,7 @@
 
 (defun process-message (connection)
   "Reads a message from CONNECTION and calls HANDLE-MESSAGE on it. Should
-   probably be called in a loop. See PROCESS-MESSAGE-LOOP."
+probably be called in a loop. See PROCESS-MESSAGE-LOOP."
   (multiple-value-call #'handle-message
     connection
     (read-message connection)))

@@ -49,12 +49,11 @@
    (primary () :required NIL)
    (after (:after)))
   "The EVENT method combination is used by HANDLE-MESSAGE and HANDLE-EVENT to
-   gracefully handle the absence of message or event handlers. In standard
-   method combination, when only a non-primary method exists, an error is
-   signalled. This makes it very hard to handle errors through an :AROUND
-   method, which would be the most elegant solution to the problem. This method
-   combination is just like the standard one, except primary methods are not
-   required."
+gracefully handle the absence of message or event handlers. In standard method
+combination, when only a non-primary method exists, an error is signalled. This
+makes it very hard to handle errors through an :AROUND method, which would be
+the most elegant solution to the problem. This method combination is just like
+the standard one, except primary methods are not required."
   (flet ((call-methods (methods)
            (mapcar #'(lambda (method)
                        `(call-method ,method))
@@ -75,12 +74,11 @@
 ;;; Somewhat low-level message handling
 
 (defgeneric handle-message (connection prefix command params)
-  (:documentation "Called when a raw message is returned.
-                   CONNECTION is the connection object of the connection the
-                   message was received on.
-                   PREFIX is a list of (NICK USER HOST)
-                   COMMAND is a keyword, such as :PRIVMSG or :RPL_WELCOME
-                   PARAMS is a list of parameters")
+  (:documentation "
+Called when a raw message is returned. CONNECTION is the connection object of
+the connection the message was received on. PREFIX is a list of (NICK USER
+HOST) COMMAND is a keyword, such as :PRIVMSG or :RPL_WELCOME PARAMS is a list
+of parameters")
   (:method-combination event))
 
 (defmethod no-applicable-method ((function (eql #'handle-message)) &rest args)
@@ -93,7 +91,7 @@
                            (command (eql :PING))
                            params)
   "Responds to a PING message by the server by sending a PONG message in
-   return"
+return"
   (destructuring-bind (server-1 &optional server-2)
       params
     (if server-2
@@ -129,7 +127,7 @@
                            (command (eql :RPL_WHOREPLY))
                            params)
   "Handles an RPL_WHOREPLY message and updates the users and channels
-    associated."
+associated."
   (destructuring-bind
         (self-nick channel user host server nick flags hopcount-and-real-name)
       params
@@ -148,10 +146,10 @@
             :accessor message)))
 
 (defgeneric handle-event (connection event)
-  (:documentation "Will be called after an IRC message has successfully been
-                   parsed and turned into an event. Most IRC messages don't
-                   result in events, should you want to handle them you can
-                   define a method on HANDLE-MESSAGE instead.")
+  (:documentation "
+Will be called after an IRC message has successfully been parsed and turned
+into an event. Most IRC messages don't result in events, should you want to
+handle them you can define a method on HANDLE-MESSAGE instead.")
   (:method-combination event))
 
 (defmethod no-applicable-method ((function (eql #'handle-event)) &rest args)
@@ -159,26 +157,26 @@
 
 (defmacro define-event-dispatcher (command class &optional positional-initargs)
   "Defines a method on HANDLE-MESSAGE to handle messages of which the command
-   is COMMAND. This new method will call HANDLE-EVENT with a new instance of
-   type CLASS.
+is COMMAND. This new method will call HANDLE-EVENT with a new instance of type
+CLASS.
 
-   POSITIONAL-INITARGS should be a list of initargs to pass to MAKE-INSTANCE,
-   where the position of the keyword determines the IRC command parameter that
-   will be used as a value. A NIL will cause an IRC parameter to be ignored.
+POSITIONAL-INITARGS should be a list of initargs to pass to MAKE-INSTANCE,
+where the position of the keyword determines the IRC command parameter that
+will be used as a value. A NIL will cause an IRC parameter to be ignored.
 
-   For example, when POSITIONAL-INITARGS is (:CHANNEL), the first parameter of
-   the IRC message will be passed as the initial value of :CHANNEL.
-   If POSITIONAL-INITARGS is (:CHANNEL :TARGET), the first parameter will be
-   passed as the initial value of :CHANNEL, and the second parameter will be
-   passed as the initial value of :TARGET.
+For example, when POSITIONAL-INITARGS is (:CHANNEL), the first parameter of the
+IRC message will be passed as the initial value of :CHANNEL. If
+POSITIONAL-INITARGS is (:CHANNEL :TARGET), the first parameter will be passed
+as the initial value of :CHANNEL, and the second parameter will be passed as
+the initial value of :TARGET.
 
-   Instead of a keyword, an element of POSITIONAL-INITARGS can also be a list of
-   the form (:KEYWORD FUNCTION), which means the value passed as the initarg
-   will be the result of calling FUNCTION with two arguments: the connection
-   object and the IRC parameter.
+Instead of a keyword, an element of POSITIONAL-INITARGS can also be a list of
+the form (:KEYWORD FUNCTION), which means the value passed as the initarg will
+be the result of calling FUNCTION with two arguments: the connection object and
+the IRC parameter.
 
-   Any remaining arguments will be joined together (separated by spaces) and
-   passed as the initial value of :MESSAGE."
+Any remaining arguments will be joined together (separated by spaces) and
+passed as the initial value of :MESSAGE."
   `(defmethod handle-message
        ((connection connection) prefix (command (eql ,command)) params)
      (let ((user (make-user connection prefix)))
@@ -205,21 +203,21 @@
   ((channel :initarg :channel
             :initform NIL
             :accessor channel))
-  (:documentation "A CHANNEL-EVENT is an event that happens on a certain
-                   channel."))
+  (:documentation "
+A CHANNEL-EVENT is an event that happens on a certain channel."))
 
 (defclass privmsg-event (channel-event) ()
-  (:documentation "Event dispatched when a PRIVMSG message is received from the
-                   server. Note that when the CHANNEL slot is STRING= to the
-                   current nickname this privmsg won't have been sent to a
-                   channel but directly to you."))
+  (:documentation "
+Event dispatched when a PRIVMSG message is received from the server. Note that
+when the CHANNEL slot is STRING= to the current nickname this privmsg won't
+have been sent to a channel but directly to you."))
 (define-event-dispatcher :PRIVMSG 'privmsg-event ((:channel #'make-channel)))
 
 (defclass notice-event (channel-event) ()
-  (:documentation "Event dispatched when a NOTICE message is received from the
-                   server. Note that when the CHANNEL slot is STRING= to the
-                   current nickname this notice won't have been sent to a
-                   channel but directly to you."))
+  (:documentation "
+Event dispatched when a NOTICE message is received from the server. Note that
+when the CHANNEL slot is STRING= to the current nickname this notice won't have
+been sent to a channel but directly to you."))
 (define-event-dispatcher :NOTICE 'notice-event ((:channel #'make-channel)))
 
 (defclass join-event (channel-event) ())
@@ -258,7 +256,7 @@
 
 (defmethod handle-event ((connection connection) (event nick-event))
   "Change the nickname associated with a user, or of the connection if the old
-   nickname is the nickname of the connection."
+nickname is the nickname of the connection."
   (rename-user connection (nick (user event)) (new-nick event)))
 
 (defmethod handle-event ((connection connection) (event topic-event))
