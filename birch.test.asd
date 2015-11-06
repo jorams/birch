@@ -1,4 +1,3 @@
-(in-package :asdf-user)
 (asdf:defsystem #:birch.test
   :serial t
   :description "Tests for Birch"
