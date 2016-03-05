@@ -9,12 +9,14 @@
                (:file "ctcp")
                (:file "parse")
                (:file "commands")
-               (:file "events"))
+               (:file "events")
+               (:file "connection"))
   :perform (test-op :after (op component)
              (let ((results (mapcar (intern #.(string :run-test-package) :prove)
                                     (list :birch.test/ctcp
                                           :birch.test/parse
                                           :birch.test/commands
-                                          :birch.test/events))))
+                                          :birch.test/events
+                                          :birch.test/connection))))
                (unless (every #'identity results)
                  (error "Tests failed.")))))

@@ -140,10 +140,22 @@ reconnect")
   (let ((found (find nick (users connection)
                      :test #'string=
                      :key #'nick)))
-    (when (and found user host)
-      (setf (user found) user
-            (host found) host))
-    found))
+    (cond ((eq connection found) found)
+          ((and found (null (channels found)))
+           ;; If we've seen a user before but they aren't in any of the
+           ;; channels we know of, we don't actually know if it's the same
+           ;; person. Thus any existing USER object is irrelevant.
+           ;;
+           ;; A better way to handle this would be to never put those users
+           ;; into the list, but due to the way the tracking is set up that's
+           ;; not known at the time of creation.
+           (prog1 nil
+             (removef (users connection) found)))
+          ((and found (channels found))
+           (prog1 found
+             (when (and user host)
+               (setf (user found) user
+                     (host found) host)))))))
 
 (defun valid-channel-name-p (name)
   (member (char name 0) '(#\& #\# #\+ #\!)))
@@ -187,8 +199,12 @@ updated."
 (defun remove-user (user &optional channel)
   (cond
     (channel (removef (channels user) channel)
-             (removef (users channel) user))
+             (removef (users channel) user)
+             (when (eq user (connection user))
+               (dolist (other-user (users channel))
+                 (remove-user other-user channel))))
     (t (dolist (channel (channels user))
          (remove-user user channel))))
-  (when (not (channels user))
+  (when (and (not (channels user))
+             (not (eq user (connection user))))
     (removef (users (connection user)) user)))
