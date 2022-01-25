@@ -95,6 +95,16 @@ reconnect")
    (server-port :initarg :server-port
                 :initform 6667
                 :accessor server-port)
+   (ssl :initarg :ssl
+        :initform NIL
+        :accessor ssl
+        :documentation "
+Whether to use SSL for the IRC connection.")
+   (ssl-verify :initarg :ssl
+               :initform T
+               :accessor ssl-verify
+               :documentation "
+Whether to verify the SSL hostname.")
    (pass :initarg :pass
          :initform NIL
          :accessor pass)
@@ -118,14 +128,21 @@ reconnect")
   (push connection (users connection)))
 
 (defun connect-socket (connection)
-  (let ((socket (usocket:socket-connect (server-host connection)
-                                        (server-port connection)
-                                        :element-type '(unsigned-byte 8))))
+  (let* ((socket (usocket:socket-connect (server-host connection)
+                                         (server-port connection)
+                                         :element-type '(unsigned-byte 8)))
+         (socket-stream
+           (if (ssl connection)
+               (cl+ssl:make-ssl-client-stream
+                (usocket:socket-stream socket)
+                :hostname (server-host connection)
+                :verify (ssl-verify connection))
+               (usocket:socket-stream socket))))
     ;; Initialization
     (setf (%socket connection) socket
           (socket-stream connection)
           (flexi-streams:make-flexi-stream
-           (usocket:socket-stream socket)
+           socket-stream
            :external-format '(:UTF-8 :eol-style :crlf))
           (activep connection) t)))
 
