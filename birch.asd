@@ -3,7 +3,7 @@
   :author "Joram Schrijver <i@joram.io>"
   :license "MIT"
   :version "1.0.1"
-  :depends-on (#:split-sequence #:usocket #:flexi-streams #:alexandria)
+  :depends-on (#:split-sequence #:usocket #:flexi-streams #:alexandria #:cl+ssl)
   :pathname "src"
   :components ((:file "replies")
                (:file "parse")
