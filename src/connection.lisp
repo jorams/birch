@@ -133,10 +133,11 @@ Whether to verify the SSL hostname.")
                                          :element-type '(unsigned-byte 8)))
          (socket-stream
            (if (ssl connection)
-               (cl+ssl:make-ssl-client-stream
-                (usocket:socket-stream socket)
-                :hostname (server-host connection)
-                :verify (ssl-verify connection))
+               #-birch-no-ssl (cl+ssl:make-ssl-client-stream
+                             (usocket:socket-stream socket)
+                             :hostname (server-host connection)
+                             :verify (ssl-verify connection))
+               #+birch-no-ssl (error "birch-no-ssl feature prohibits SSL support.")
                (usocket:socket-stream socket))))
     ;; Initialization
     (setf (%socket connection) socket

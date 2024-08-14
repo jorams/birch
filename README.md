@@ -14,8 +14,11 @@ Birch is built in Common Lisp on SBCL. It depends on:
 - [usocket](http://common-lisp.net/project/usocket/) (MIT)
 - [FLEXI-STREAMS](http://weitz.de/flexi-streams/) (BSD)
 - [Alexandria](http://common-lisp.net/project/alexandria/) (Public Domain)
+- [CL+SSL](https://github.com/cl-plus-ssl/cl-plus-ssl) (MIT)
 
 The tests also use [Prove](https://github.com/fukamachi/prove) (MIT).
+
+The CL+SSL requirement can be relaxed by adding `:birch-no-ssl` to `*features*`.
 
 ## Installation
 
